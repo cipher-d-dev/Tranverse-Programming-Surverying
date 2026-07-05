@@ -1,0 +1,11 @@
+# Visual Studio / VB.NET build artifacts
+bin/
+obj/
+*.suo
+*.user
+*.vs/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
