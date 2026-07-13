@@ -50,7 +50,7 @@ Public Class Form1
     ' =========================================================================
     '  CONTROLS
     ' =========================================================================
-    Private WithEvents btnCompute    As Button
+    Private WithEvents btnCompute    As RoundButton
     Private WithEvents btnLoadSample As Button
     Private WithEvents btnAddRow     As Button
     Private WithEvents btnRemoveRow  As Button
@@ -259,22 +259,16 @@ Public Class Form1
         }
         body.Controls.Add(pnlCompute, 0, 1)
 
-        btnCompute = New Button With {
+        btnCompute = New RoundButton With {
             .Text      = "▶   COMPUTE TRAVERSE",
             .Dock      = DockStyle.Fill,
             .Font      = New Font("Segoe UI", 10, FontStyle.Bold),
             .BackColor = A_MID,
             .ForeColor = T_ONACCNT,
-            .FlatStyle = FlatStyle.Flat,
+            .HoverColor = A_DARK,
             .Cursor    = Cursors.Hand,
             .TabStop   = False
         }
-        btnCompute.FlatAppearance.BorderSize         = 0
-        btnCompute.FlatAppearance.BorderColor        = A_MID
-        btnCompute.FlatAppearance.MouseOverBackColor = A_DARK
-        btnCompute.FlatAppearance.MouseDownBackColor = DarkenColor(A_DARK, 15)
-        ' Owner-draw for rounded corners
-        AddHandler btnCompute.Paint, AddressOf PaintRoundButton
         pnlCompute.Controls.Add(btnCompute)
 
         ' ── ROW 2 : Stats bar (5 tiles) ───────────────────────────────────────
@@ -368,13 +362,12 @@ Public Class Form1
     '  FACTORY / STYLE HELPERS
     ' =========================================================================
     Private Function MakeCard() As Panel
-        Dim p As New Panel With {
+        Dim p As New ShadowPanel With {
             .BackColor = S_CARD,
             .Margin    = New Padding(0, 0, 0, 8),
             .Font      = F_LABEL,
             .Padding   = New Padding(0)
         }
-        AddHandler p.Paint, AddressOf PaintCardShadow
         Return p
     End Function
 
@@ -503,67 +496,18 @@ Public Class Form1
         End Using
     End Sub
 
-    ' ── Card: white fill + subtle bottom/right shadow ──
+    ' ── Card shadow: the OUTER wrapper paints the shadow, inner panel is white ──
+    ' (Panel.BackColor = Transparent alone doesn't work because Panel is not
+    '  transparent by default — we must set WS_EX_TRANSPARENT via SetStyle.)
+    ' The simplest reliable approach: paint shadow on the outer wrapper whose
+    ' BackColor = S_PAGE, then the inner white panel sits 0,0 offset inside.
     Private Sub PaintCardShadow(sender As Object, e As PaintEventArgs)
-        Dim p As Panel = DirectCast(sender, Panel)
-        Dim g As Graphics = e.Graphics
-        g.SmoothingMode = SmoothingMode.AntiAlias
-
-        ' Shadow layers (paint before the white fill so they sit behind)
-        Dim shadowColors() As Color = {
-            Color.FromArgb(18, 0, 0, 0),
-            Color.FromArgb(10, 0, 0, 0),
-            Color.FromArgb( 5, 0, 0, 0)
-        }
-        For offset As Integer = 1 To 3
-            Using shadowBr As New SolidBrush(shadowColors(offset - 1))
-                g.FillRectangle(shadowBr,
-                    New Rectangle(offset, offset, p.Width - offset, p.Height - offset))
-            End Using
-        Next
-
-        ' White card surface
-        Using cardBr As New SolidBrush(S_CARD)
-            g.FillRectangle(cardBr, New Rectangle(0, 0, p.Width - 3, p.Height - 3))
-        End Using
-
-        ' Hairline border
-        Using borderPen As New Pen(B_SUBTLE, 1)
-            g.DrawRectangle(borderPen, 0, 0, p.Width - 4, p.Height - 4)
-        End Using
+        ' Not used — shadows handled by ShadowPanel subclass below
     End Sub
 
-    ' ── Compute button: rounded rectangle with centred text ──
+    ' ── Compute button rounded paint — handled by RoundButton subclass below ──
     Private Sub PaintRoundButton(sender As Object, e As PaintEventArgs)
-        Dim b As Button = DirectCast(sender, Button)
-        Dim g As Graphics = e.Graphics
-        g.SmoothingMode = SmoothingMode.AntiAlias
-
-        Dim bg As Color = If(b.ClientRectangle.Contains(b.PointToClient(Control.MousePosition)),
-                             A_DARK, A_MID)
-        Dim radius As Integer = 6
-        Dim r As New Rectangle(0, 0, b.Width - 1, b.Height - 1)
-
-        ' Rounded fill
-        Using path As New Drawing2D.GraphicsPath()
-            path.AddArc(r.X, r.Y, radius * 2, radius * 2, 180, 90)
-            path.AddArc(r.Right - radius * 2, r.Y, radius * 2, radius * 2, 270, 90)
-            path.AddArc(r.Right - radius * 2, r.Bottom - radius * 2, radius * 2, radius * 2, 0, 90)
-            path.AddArc(r.X, r.Bottom - radius * 2, radius * 2, radius * 2, 90, 90)
-            path.CloseFigure()
-            Using br As New SolidBrush(bg)
-                g.FillPath(br, path)
-            End Using
-        End Using
-
-        ' Centred text
-        Dim sf As New StringFormat With {
-            .Alignment     = StringAlignment.Center,
-            .LineAlignment = StringAlignment.Center
-        }
-        Using textBr As New SolidBrush(T_ONACCNT)
-            g.DrawString(b.Text, b.Font, textBr, RectangleF.op_Implicit(r), sf)
-        End Using
+        ' No-op: RoundButton.OnPaint does the real work
     End Sub
 
 
@@ -759,4 +703,152 @@ Public Class Form1
             sign, deg.ToString() & ChrW(176), mins.ToString("00"), secs)
     End Function
 
+End Class
+
+' =============================================================================
+'  RoundButton — fully owner-painted button with true rounded corners.
+'  SetStyle(UserPaint) suppresses all default WinForms background drawing
+'  so GDI+ has a clean canvas.
+' =============================================================================
+Public Class RoundButton
+    Inherits Button
+
+    Public Property HoverColor As Color = Color.FromArgb(13, 148, 136)
+    Public Property Radius     As Integer = 8
+
+    Private _isHovered  As Boolean = False
+    Private _isPressed  As Boolean = False
+
+    Public Sub New()
+        SetStyle(ControlStyles.UserPaint Or
+                 ControlStyles.AllPaintingInWmPaint Or
+                 ControlStyles.OptimizedDoubleBuffer, True)
+        FlatStyle = FlatStyle.Flat
+        FlatAppearance.BorderSize = 0
+    End Sub
+
+    Protected Overrides Sub OnMouseEnter(e As EventArgs)
+        _isHovered = True
+        Invalidate()
+        MyBase.OnMouseEnter(e)
+    End Sub
+
+    Protected Overrides Sub OnMouseLeave(e As EventArgs)
+        _isHovered = False
+        Invalidate()
+        MyBase.OnMouseLeave(e)
+    End Sub
+
+    Protected Overrides Sub OnMouseDown(e As MouseEventArgs)
+        _isPressed = True
+        Invalidate()
+        MyBase.OnMouseDown(e)
+    End Sub
+
+    Protected Overrides Sub OnMouseUp(e As MouseEventArgs)
+        _isPressed = False
+        Invalidate()
+        MyBase.OnMouseUp(e)
+    End Sub
+
+    Protected Overrides Sub OnPaint(e As PaintEventArgs)
+        Dim g As Graphics = e.Graphics
+        g.SmoothingMode      = SmoothingMode.AntiAlias
+        g.TextRenderingHint  = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit
+
+        Dim bg As Color
+        If _isPressed Then
+            bg = Color.FromArgb(
+                Math.Max(0, CInt(HoverColor.R) - 20),
+                Math.Max(0, CInt(HoverColor.G) - 20),
+                Math.Max(0, CInt(HoverColor.B) - 20))
+        ElseIf _isHovered Then
+            bg = HoverColor
+        Else
+            bg = BackColor
+        End If
+
+        Dim r   As New Rectangle(0, 0, Width - 1, Height - 1)
+        Dim rad As Integer = Radius * 2
+
+        Using path As New Drawing2D.GraphicsPath()
+            path.AddArc(r.X,              r.Y,               rad, rad, 180, 90)
+            path.AddArc(r.Right - rad,    r.Y,               rad, rad, 270, 90)
+            path.AddArc(r.Right - rad,    r.Bottom - rad,    rad, rad,   0, 90)
+            path.AddArc(r.X,              r.Bottom - rad,    rad, rad,  90, 90)
+            path.CloseFigure()
+
+            ' Fill
+            Using br As New SolidBrush(bg)
+                g.FillPath(br, path)
+            End Using
+
+            ' Clip so child paint can't escape the rounded shape
+            g.SetClip(path)
+        End Using
+
+        ' Text centred
+        Dim sf As New StringFormat With {
+            .Alignment     = StringAlignment.Center,
+            .LineAlignment = StringAlignment.Center
+        }
+        Using tb As New SolidBrush(ForeColor)
+            g.DrawString(Text, Font, tb, RectangleF.op_Implicit(r), sf)
+        End Using
+    End Sub
+End Class
+
+' =============================================================================
+'  ShadowPanel — Panel that paints its own drop shadow by drawing offset
+'  semi-transparent rectangles on the PARENT surface before painting itself.
+'  Uses WS_EX_TRANSPARENT (via CreateParams) so the parent background
+'  shows through, making the shadow visible.
+' =============================================================================
+Public Class ShadowPanel
+    Inherits Panel
+
+    Private Const SHADOW_DEPTH As Integer = 4
+
+    Public Sub New()
+        SetStyle(ControlStyles.OptimizedDoubleBuffer Or
+                 ControlStyles.AllPaintingInWmPaint, True)
+    End Sub
+
+    Protected Overrides ReadOnly Property CreateParams() As CreateParams
+        Get
+            Dim cp As CreateParams = MyBase.CreateParams
+            cp.ExStyle = cp.ExStyle Or &H20  ' WS_EX_TRANSPARENT
+            Return cp
+        End Get
+    End Property
+
+    Protected Overrides Sub OnPaintBackground(e As PaintEventArgs)
+        ' Paint parent background behind us first (needed for transparency)
+        MyBase.OnPaintBackground(e)
+    End Sub
+
+    Protected Overrides Sub OnPaint(e As PaintEventArgs)
+        Dim g As Graphics = e.Graphics
+        g.SmoothingMode = SmoothingMode.AntiAlias
+
+        ' Shadow — drawn offset so it peeks out below/right
+        For i As Integer = SHADOW_DEPTH To 1 Step -1
+            Dim alpha As Integer = CInt(30 * (1 - (i - 1) / CDbl(SHADOW_DEPTH)))
+            Dim sr As New Rectangle(i, i, Width - SHADOW_DEPTH - 1, Height - SHADOW_DEPTH - 1)
+            Using sb As New SolidBrush(Color.FromArgb(alpha, 0, 0, 0))
+                g.FillRectangle(sb, sr)
+            End Using
+        Next
+
+        ' White card surface (slightly inset from shadow)
+        Dim cr As New Rectangle(0, 0, Width - SHADOW_DEPTH, Height - SHADOW_DEPTH)
+        Using wb As New SolidBrush(BackColor)
+            g.FillRectangle(wb, cr)
+        End Using
+
+        ' Hairline border
+        Using bp As New Pen(Color.FromArgb(229, 231, 235), 1)
+            g.DrawRectangle(bp, cr.X, cr.Y, cr.Width - 1, cr.Height - 1)
+        End Using
+    End Sub
 End Class
