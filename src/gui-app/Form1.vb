@@ -1,9 +1,9 @@
 '==================================================================================
-'  SVY 323 - COMPUTER APPLICATION I
-'  TRAVERSE COMPUTATION PROGRAMME (Closed Traverse) - WINDOWS FORMS (GUI) VERSION
-'  Redesigned: modern dark-header / card layout, accent colours, styled grids
+'  SVY 323 — COMPUTER APPLICATION I
+'  Closed Traverse Computation — Windows Forms GUI
+'  Design: clean light surface / dark slate sidebar-style header, single teal
+'          accent, Segoe UI, no scrollbars at default size.
 '==================================================================================
-
 Imports System
 Imports System.Windows.Forms
 Imports System.Drawing
@@ -13,31 +13,43 @@ Imports System.Collections.Generic
 Public Class Form1
     Inherits Form
 
-    ' ── Theme colours ──────────────────────────────────────────────────────────
-    Private Shared ReadOnly CLR_BG         As Color = Color.FromArgb(245, 246, 250)   ' page background
-    Private Shared ReadOnly CLR_HEADER_TOP As Color = Color.FromArgb(15,  32,  65)    ' deep navy
-    Private Shared ReadOnly CLR_HEADER_BOT As Color = Color.FromArgb(26,  58, 110)    ' lighter navy
-    Private Shared ReadOnly CLR_CARD       As Color = Color.White
-    Private Shared ReadOnly CLR_ACCENT     As Color = Color.FromArgb(0,  122, 255)    ' iOS-style blue
-    Private Shared ReadOnly CLR_ACCENT_HOV As Color = Color.FromArgb(0,   95, 210)
-    Private Shared ReadOnly CLR_ACCENT_TXT As Color = Color.White
-    Private Shared ReadOnly CLR_DANGER     As Color = Color.FromArgb(220,  53,  69)
-    Private Shared ReadOnly CLR_SUCCESS    As Color = Color.FromArgb(40,  167,  69)
-    Private Shared ReadOnly CLR_ROW_ALT    As Color = Color.FromArgb(240, 245, 255)
-    Private Shared ReadOnly CLR_GRID_HDR   As Color = Color.FromArgb(26,  58, 110)
-    Private Shared ReadOnly CLR_BORDER     As Color = Color.FromArgb(220, 225, 235)
-    Private Shared ReadOnly CLR_LBL_DIM    As Color = Color.FromArgb(120, 130, 150)
-    Private Shared ReadOnly CLR_TXT        As Color = Color.FromArgb(30,  40,  60)
+    ' =========================================================================
+    '  DESIGN TOKENS  — one place to change the whole look
+    ' =========================================================================
+    ' Surfaces
+    Private Shared ReadOnly S_PAGE    As Color = Color.FromArgb(248, 249, 251)  ' off-white page
+    Private Shared ReadOnly S_CARD    As Color = Color.White                    ' card surface
+    Private Shared ReadOnly S_HEADER  As Color = Color.FromArgb(28,  35,  51)  ' near-black slate
+    ' Accent  (single teal — every interactive element uses only this)
+    Private Shared ReadOnly A_MID     As Color = Color.FromArgb( 20, 184, 166)  ' teal-500
+    Private Shared ReadOnly A_DARK    As Color = Color.FromArgb( 13, 148, 136)  ' teal-600 (hover)
+    Private Shared ReadOnly A_LIGHT   As Color = Color.FromArgb(204, 245, 241)  ' teal-100 (row tint)
+    ' Text
+    Private Shared ReadOnly T_PRIMARY As Color = Color.FromArgb( 17,  24,  39)  ' near-black
+    Private Shared ReadOnly T_MUTED   As Color = Color.FromArgb(107, 114, 128)  ' gray-500
+    Private Shared ReadOnly T_ONSLATE As Color = Color.White
+    Private Shared ReadOnly T_ONACCNT As Color = Color.White
+    ' Borders / dividers
+    Private Shared ReadOnly B_SUBTLE  As Color = Color.FromArgb(229, 231, 235)  ' gray-200
+    Private Shared ReadOnly B_FOCUS   As Color = Color.FromArgb( 20, 184, 166)  ' teal border on focus
 
-    ' ── Fonts ──────────────────────────────────────────────────────────────────
-    Private Shared ReadOnly FNT_H1   As New Font("Segoe UI", 16, FontStyle.Bold)
-    Private Shared ReadOnly FNT_H2   As New Font("Segoe UI",  9, FontStyle.Bold)
-    Private Shared ReadOnly FNT_BODY As New Font("Segoe UI",  9, FontStyle.Regular)
-    Private Shared ReadOnly FNT_MONO As New Font("Consolas",  9, FontStyle.Regular)
-    Private Shared ReadOnly FNT_BTN  As New Font("Segoe UI",  9, FontStyle.Bold)
-    Private Shared ReadOnly FNT_STAT As New Font("Segoe UI", 10, FontStyle.Bold)
+    ' =========================================================================
+    '  TYPOGRAPHY
+    ' =========================================================================
+    Private Shared ReadOnly F_TITLE   As New Font("Segoe UI",  15, FontStyle.Bold)
+    Private Shared ReadOnly F_SUB     As New Font("Segoe UI",   9, FontStyle.Regular)
+    Private Shared ReadOnly F_SECTION As New Font("Segoe UI",   8, FontStyle.Bold)
+    Private Shared ReadOnly F_LABEL   As New Font("Segoe UI",   9, FontStyle.Regular)
+    Private Shared ReadOnly F_INPUT   As New Font("Segoe UI",   9, FontStyle.Regular)
+    Private Shared ReadOnly F_BTN     As New Font("Segoe UI",   9, FontStyle.Bold)
+    Private Shared ReadOnly F_STAT_K  As New Font("Segoe UI",   8, FontStyle.Regular)   ' stat key
+    Private Shared ReadOnly F_STAT_V  As New Font("Segoe UI",  10, FontStyle.Bold)      ' stat value
+    Private Shared ReadOnly F_GRID_H  As New Font("Segoe UI",   8, FontStyle.Bold)
+    Private Shared ReadOnly F_GRID_C  As New Font("Consolas",   9, FontStyle.Regular)
 
-    ' ── Controls ───────────────────────────────────────────────────────────────
+    ' =========================================================================
+    '  CONTROLS
+    ' =========================================================================
     Private WithEvents btnCompute    As Button
     Private WithEvents btnLoadSample As Button
     Private WithEvents btnAddRow     As Button
@@ -50,15 +62,16 @@ Public Class Form1
     Private txtStartN       As TextBox
     Private txtStartE       As TextBox
 
-    Private lblAngularSum       As Label
-    Private lblAngularMisc      As Label
-    Private lblLinearMisc       As Label
-    Private lblAccuracy         As Label
-    Private lblArea             As Label
-    Private pnlHeader           As Panel
-    Private pnlStats            As Panel
+    ' Stat value labels (the bold numbers that update after compute)
+    Private lblAngularVal  As Label
+    Private lblMisclosVal  As Label
+    Private lblLinearVal   As Label
+    Private lblAccuracyVal As Label
+    Private lblAreaVal     As Label
 
-    ' ── Leg result structure ───────────────────────────────────────────────────
+    ' =========================================================================
+    '  DATA STRUCTURE
+    ' =========================================================================
     Structure LegResult
         Public FromStation    As String
         Public ToStation      As String
@@ -66,358 +79,403 @@ Public Class Form1
         Public Distance       As Double
         Public ForwardBearing As Double
         Public BackBearing    As Double
-        Public DN             As Double
-        Public DE             As Double
-        Public CorrDN         As Double
-        Public CorrDE         As Double
-        Public AdjDN          As Double
-        Public AdjDE          As Double
-        Public FinalN         As Double
-        Public FinalE         As Double
+        Public DN As Double,  DE As Double
+        Public CorrDN As Double, CorrDE As Double
+        Public AdjDN As Double,  AdjDE As Double
+        Public FinalN As Double, FinalE As Double
     End Structure
 
-    ' ══════════════════════════════════════════════════════════════════════════
+    ' =========================================================================
+    '  CONSTRUCTOR
+    ' =========================================================================
     Public Sub New()
-        BuildUserInterface()
+        Me.SuspendLayout()
+        BuildUI()
+        Me.ResumeLayout(False)
+        Me.PerformLayout()
         LoadSampleData()
     End Sub
 
+    ' =========================================================================
+    '  BUILD UI  — single method, TableLayoutPanel drives all proportions
+    ' =========================================================================
+    Private Sub BuildUI()
+        ' ── Form shell ───────────────────────────────────────────────────────
+        Me.Text          = "SVY 323  ·  Closed Traverse Computation"
+        Me.ClientSize    = New Size(1280, 820)
+        Me.MinimumSize   = New Size(1100, 720)
+        Me.StartPosition = FormStartPosition.CenterScreen
+        Me.BackColor     = S_PAGE
+        Me.Font          = F_LABEL
 
-
-    ' ══════════════════════════════════════════════════════════════════════════
-    '  UI CONSTRUCTION
-    ' ══════════════════════════════════════════════════════════════════════════
-    Private Sub BuildUserInterface()
-        ' ── Form shell ──
-        Me.Text            = "SVY 323  ·  Closed Traverse Computation"
-        Me.Width           = 1220
-        Me.Height          = 880
-        Me.MinimumSize     = New Size(1000, 750)
-        Me.StartPosition   = FormStartPosition.CenterScreen
-        Me.BackColor       = CLR_BG
-        Me.Font            = FNT_BODY
-        Me.ForeColor       = CLR_TXT
-
-        ' ── Gradient header banner ──
-        pnlHeader = New Panel With {
-            .Dock   = DockStyle.Top,
-            .Height = 72
+        ' ── Outer TableLayout: header row (fixed) + body row (fills) ─────────
+        Dim outer As New TableLayoutPanel With {
+            .Dock        = DockStyle.Fill,
+            .RowCount    = 2,
+            .ColumnCount = 1,
+            .Padding     = New Padding(0),
+            .Margin      = New Padding(0),
+            .BackColor   = S_PAGE
         }
-        AddHandler pnlHeader.Paint, AddressOf PaintHeader
-        Me.Controls.Add(pnlHeader)
+        outer.RowStyles.Add(New RowStyle(SizeType.Absolute, 74))   ' header
+        outer.RowStyles.Add(New RowStyle(SizeType.Percent, 100))   ' body
+        outer.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        Me.Controls.Add(outer)
 
-        Dim lblTitle As New Label With {
+        ' ── Header ───────────────────────────────────────────────────────────
+        Dim header As New Panel With {
+            .Dock      = DockStyle.Fill,
+            .BackColor = S_HEADER,
+            .Padding   = New Padding(24, 0, 0, 0)
+        }
+        AddHandler header.Paint, AddressOf OnHeaderPaint
+        outer.Controls.Add(header, 0, 0)
+
+        header.Controls.Add(New Label With {
             .Text      = "SVY 323  —  Closed Traverse Computation",
-            .Font      = FNT_H1,
-            .ForeColor = Color.White,
-            .AutoSize  = True,
-            .Left      = 22,
-            .Top       = 14
-        }
-        Dim lblSub As New Label With {
-            .Text      = "Bowditch (Compass Rule) Adjustment  ·  Bearings  ·  DN/DE  ·  Final Coordinates  ·  Area",
-            .Font      = New Font("Segoe UI", 8, FontStyle.Regular),
-            .ForeColor = Color.FromArgb(180, 210, 255),
+            .Font      = F_TITLE,
+            .ForeColor = T_ONSLATE,
             .AutoSize  = True,
             .Left      = 24,
+            .Top       = 14
+        })
+        header.Controls.Add(New Label With {
+            .Text      = "Angular Adjustment  ·  Bowditch (Compass Rule)  ·  Bearings  ·  Latitudes & Departures  ·  Final Coordinates  ·  Area",
+            .Font      = F_SUB,
+            .ForeColor = Color.FromArgb(156, 163, 175),
+            .AutoSize  = True,
+            .Left      = 26,
             .Top       = 46
+        })
+
+        ' ── Body TableLayout: input section + compute bar + stats + results ──
+        Dim body As New TableLayoutPanel With {
+            .Dock        = DockStyle.Fill,
+            .RowCount    = 4,
+            .ColumnCount = 1,
+            .Padding     = New Padding(16, 12, 16, 12),
+            .BackColor   = S_PAGE
         }
-        pnlHeader.Controls.AddRange({lblTitle, lblSub})
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 210))   ' input section
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute,  48))   ' compute button
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute,  96))   ' stats bar
+        body.RowStyles.Add(New RowStyle(SizeType.Percent,  100))   ' results (fills)
+        body.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        outer.Controls.Add(body, 0, 1)
 
-        ' ── Input card ──
-        Dim cardInput As Panel = MakeCard(10, 82, Me.Width - 28, 195)
-        Me.Controls.Add(cardInput)
+        ' ── ROW 0 : Input section ─────────────────────────────────────────────
+        Dim cardInput As Panel = MakeCard()
+        cardInput.Dock    = DockStyle.Fill
+        cardInput.Padding = New Padding(16, 10, 16, 10)
+        body.Controls.Add(cardInput, 0, 0)
 
-        Dim lblInputTitle As New Label With {
-            .Text      = "CONTROL DATA  &  FIELD OBSERVATIONS",
-            .Font      = FNT_H2,
-            .ForeColor = CLR_ACCENT,
-            .AutoSize  = True,
-            .Left      = 14,
-            .Top       = 12
+        ' Section label
+        cardInput.Controls.Add(MakeSectionLabel("CONTROL DATA  &  FIELD OBSERVATIONS", 0, 0))
+
+        ' Control-data row: bearing, N, E, buttons  (use a FlowLayoutPanel for clean spacing)
+        Dim flowCtrl As New FlowLayoutPanel With {
+            .FlowDirection = FlowDirection.LeftToRight,
+            .AutoSize      = True,
+            .Left          = 0,
+            .Top           = 22,
+            .Height        = 30,
+            .WrapContents  = False,
+            .BackColor     = Color.Transparent
         }
-        cardInput.Controls.Add(lblInputTitle)
+        flowCtrl.Controls.Add(MakeFieldLabel("Start Bearing (D M S)"))
+        txtStartBearing = MakeInput("60 0 0", 88)
+        flowCtrl.Controls.Add(txtStartBearing)
+        flowCtrl.Controls.Add(MakeSpacer(20))
+        flowCtrl.Controls.Add(MakeFieldLabel("Start Northing (m)"))
+        txtStartN = MakeInput("1000.000", 96)
+        flowCtrl.Controls.Add(txtStartN)
+        flowCtrl.Controls.Add(MakeSpacer(20))
+        flowCtrl.Controls.Add(MakeFieldLabel("Start Easting (m)"))
+        txtStartE = MakeInput("1000.000", 96)
+        flowCtrl.Controls.Add(txtStartE)
+        flowCtrl.Controls.Add(MakeSpacer(32))
+        btnLoadSample = MakeBtn("↺  Load Sample",  A_MID, 118, 28)
+        btnAddRow     = MakeBtn("+  Add Row",       A_MID, 94,  28)
+        btnRemoveRow  = MakeBtn("−  Remove",        Color.FromArgb(75,85,99), 84, 28)
+        flowCtrl.Controls.Add(btnLoadSample)
+        flowCtrl.Controls.Add(MakeSpacer(6))
+        flowCtrl.Controls.Add(btnAddRow)
+        flowCtrl.Controls.Add(MakeSpacer(4))
+        flowCtrl.Controls.Add(btnRemoveRow)
+        cardInput.Controls.Add(flowCtrl)
 
-        ' Start bearing / N / E row
-        Dim yRow As Integer = 38
-        cardInput.Controls.Add(MakeLabel("Start Bearing (D  M  S):", 14, yRow + 3))
-        txtStartBearing = MakeTextBox("60 0 0", 172, yRow, 90)
-        cardInput.Controls.Add(txtStartBearing)
-
-        cardInput.Controls.Add(MakeLabel("Start Northing (m):", 278, yRow + 3))
-        txtStartN = MakeTextBox("1000.000", 420, yRow, 100)
-        cardInput.Controls.Add(txtStartN)
-
-        cardInput.Controls.Add(MakeLabel("Start Easting (m):", 534, yRow + 3))
-        txtStartE = MakeTextBox("1000.000", 666, yRow, 100)
-        cardInput.Controls.Add(txtStartE)
-
-        ' Buttons
-        btnLoadSample = MakeButton("⟳  Load Sample",  780, yRow - 1, 130, 28, CLR_ACCENT)
-        btnAddRow     = MakeButton("+  Add Row",       918, yRow - 1, 105, 28, CLR_SUCCESS)
-        btnRemoveRow  = MakeButton("−  Remove Row",   1027, yRow - 1, 120, 28, CLR_DANGER)
-        cardInput.Controls.AddRange({btnLoadSample, btnAddRow, btnRemoveRow})
-
-        ' Field data label
-        Dim lblGridHdr As New Label With {
-            .Text      = "Field Data  —  Station name, Included Angle (D M S), Distance to next station (m).  Minimum 5 rows.",
-            .Font      = New Font("Segoe UI", 8, FontStyle.Italic),
-            .ForeColor = CLR_LBL_DIM,
-            .AutoSize  = True,
-            .Left      = 14,
-            .Top       = 74
+        ' Hint text
+        Dim hint As New Label With {
+            .Text      = "Enter station name, included angle (degrees minutes seconds, space-separated) and distance to next station in metres.  Minimum 5 rows.",
+            .Font      = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = T_MUTED,
+            .AutoSize  = False,
+            .Height    = 16,
+            .Width     = 900,
+            .Left      = 0,
+            .Top       = 58
         }
-        cardInput.Controls.Add(lblGridHdr)
+        cardInput.Controls.Add(hint)
 
-        ' Input DataGridView
-        inputGrid = BuildInputGrid()
-        inputGrid.Left   = 14
-        inputGrid.Top    = 92
-        inputGrid.Width  = cardInput.Width - 28
-        inputGrid.Height = 90
-        inputGrid.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+        ' Input grid
+        inputGrid = New DataGridView With {
+            .Left                = 0,
+            .Top                 = 78,
+            .Height              = 106,
+            .Anchor              = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right,
+            .AllowUserToAddRows  = False,
+            .RowHeadersVisible   = False,
+            .BorderStyle         = BorderStyle.None,
+            .BackgroundColor     = S_CARD,
+            .GridColor           = B_SUBTLE,
+            .SelectionMode       = DataGridViewSelectionMode.FullRowSelect,
+            .ColumnHeadersHeight = 30,
+            .Font                = F_INPUT,
+            .ScrollBars          = ScrollBars.Vertical
+        }
+        inputGrid.RowTemplate.Height = 30
+        ApplyGridStyle(inputGrid)
+        inputGrid.Columns.Add("col_stn",  "Station")
+        inputGrid.Columns.Add("col_ang",  "Included Angle  (D  M  S)")
+        inputGrid.Columns.Add("col_dist", "Distance to Next Station (m)")
+        inputGrid.Columns(0).Width = 160
+        inputGrid.Columns(1).Width = 240
+        inputGrid.Columns(2).FillWeight = 100
+        inputGrid.Columns(2).AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
         cardInput.Controls.Add(inputGrid)
-    End Sub
 
+        ' ── ROW 1 : Compute button ────────────────────────────────────────────
+        Dim pnlCompute As New Panel With {
+            .Dock      = DockStyle.Fill,
+            .BackColor = S_PAGE,
+            .Padding   = New Padding(0, 6, 0, 6)
+        }
+        body.Controls.Add(pnlCompute, 0, 1)
 
-
-    ' ── Second half of BuildUserInterface: Compute button, stats card, results grid ──
-    Private Sub BuildUILowerHalf()
-        Dim formW As Integer = Me.ClientSize.Width
-
-        ' Compute button (full-width accent bar)
         btnCompute = New Button With {
             .Text      = "▶   COMPUTE TRAVERSE",
-            .Font      = New Font("Segoe UI", 11, FontStyle.Bold),
-            .ForeColor = CLR_ACCENT_TXT,
-            .BackColor = CLR_ACCENT,
+            .Dock      = DockStyle.Fill,
+            .Font      = New Font("Segoe UI", 10, FontStyle.Bold),
+            .BackColor = A_MID,
+            .ForeColor = T_ONACCNT,
             .FlatStyle = FlatStyle.Flat,
-            .Height    = 42,
-            .Left      = 10,
-            .Top       = 284,
-            .Width     = formW - 28,
-            .Anchor    = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right,
             .Cursor    = Cursors.Hand
         }
-        btnCompute.FlatAppearance.BorderSize = 0
-        Me.Controls.Add(btnCompute)
+        btnCompute.FlatAppearance.BorderSize      = 0
+        btnCompute.FlatAppearance.MouseOverBackColor = A_DARK
+        pnlCompute.Controls.Add(btnCompute)
 
-        ' Stats card
-        pnlStats = MakeCard(10, 336, formW - 28, 78)
-        pnlStats.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
-        Me.Controls.Add(pnlStats)
+        ' ── ROW 2 : Stats bar (5 tiles) ───────────────────────────────────────
+        Dim cardStats As Panel = MakeCard()
+        cardStats.Dock    = DockStyle.Fill
+        cardStats.Padding = New Padding(0)
+        body.Controls.Add(cardStats, 0, 2)
 
-        lblAngularSum  = MakeStatLabel("Sum of Angles / Misclosure: —",  14,  8)
-        lblAngularMisc = MakeStatLabel("",                                14, 30)
-        lblLinearMisc  = MakeStatLabel("Linear Misclosure: —",           440,  8)
-        lblAccuracy    = MakeStatLabel("Accuracy: —",                    440, 30)
-        lblArea        = MakeStatLabel("Area: —",                        440, 52)
-        lblArea.ForeColor = CLR_ACCENT
-        lblArea.Font      = New Font("Segoe UI", 10, FontStyle.Bold)
-        pnlStats.Controls.AddRange({lblAngularSum, lblAngularMisc, lblLinearMisc, lblAccuracy, lblArea})
-
-        ' Results label
-        Dim lblResTitle As New Label With {
-            .Text      = "COMPUTATION RESULTS  —  Bearings  ·  DN / DE  ·  Bowditch Corrections  ·  Final Coordinates",
-            .Font      = FNT_H2,
-            .ForeColor = CLR_ACCENT,
-            .AutoSize  = True,
-            .Left      = 22,
-            .Top       = 424
+        Dim statFlow As New TableLayoutPanel With {
+            .Dock        = DockStyle.Fill,
+            .ColumnCount = 5,
+            .RowCount    = 1,
+            .BackColor   = Color.Transparent,
+            .CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
         }
-        Me.Controls.Add(lblResTitle)
+        For i As Integer = 0 To 4
+            statFlow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 20))
+        Next
+        statFlow.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+        cardStats.Controls.Add(statFlow)
 
-        ' Results card + grid
-        Dim cardResults As Panel = MakeCard(10, 444, formW - 28, 380)
-        cardResults.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
-        Me.Controls.Add(cardResults)
+        lblAngularVal  = AddStatTile(statFlow, 0, "Sum of Angles",       "—")
+        lblMisclosVal  = AddStatTile(statFlow, 1, "Angular Misclosure",  "—")
+        lblLinearVal   = AddStatTile(statFlow, 2, "Linear Misclosure",   "—")
+        lblAccuracyVal = AddStatTile(statFlow, 3, "Linear Accuracy",     "—")
+        lblAreaVal     = AddStatTile(statFlow, 4, "Enclosed Area",       "—")
+        lblAreaVal.ForeColor = A_MID   ' highlight the area tile value
 
-        resultsGrid = BuildResultsGrid()
-        resultsGrid.Left   = 6
-        resultsGrid.Top    = 6
-        resultsGrid.Width  = cardResults.Width  - 12
-        resultsGrid.Height = cardResults.Height - 12
-        resultsGrid.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
+        ' ── ROW 3 : Results grid ──────────────────────────────────────────────
+        Dim cardResults As Panel = MakeCard()
+        cardResults.Dock    = DockStyle.Fill
+        cardResults.Padding = New Padding(0)
+        body.Controls.Add(cardResults, 0, 3)
+
+        Dim lblResHdr As New Label With {
+            .Text      = "COMPUTATION RESULTS",
+            .Font      = F_SECTION,
+            .ForeColor = T_MUTED,
+            .AutoSize  = True,
+            .Left      = 12,
+            .Top       = 8
+        }
+        cardResults.Controls.Add(lblResHdr)
+
+        resultsGrid = New DataGridView With {
+            .Left                = 0,
+            .Top                 = 28,
+            .Anchor              = AnchorStyles.Top Or AnchorStyles.Bottom Or
+                                   AnchorStyles.Left Or AnchorStyles.Right,
+            .AllowUserToAddRows  = False,
+            .ReadOnly            = True,
+            .RowHeadersVisible   = False,
+            .BorderStyle         = BorderStyle.None,
+            .BackgroundColor     = S_CARD,
+            .GridColor           = B_SUBTLE,
+            .SelectionMode       = DataGridViewSelectionMode.FullRowSelect,
+            .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            .ColumnHeadersHeight = 32,
+            .Font                = F_GRID_C,
+            .ScrollBars          = ScrollBars.Both
+        }
+        resultsGrid.RowTemplate.Height = 28
+        ApplyGridStyle(resultsGrid)
+
+        Dim rCols() As String = {
+            "Leg", "Angle", "Dist (m)",
+            "Fwd Bearing", "Back Bearing",
+            "DN (m)", "DE (m)",
+            "Corr DN", "Corr DE",
+            "Adj DN", "Adj DE",
+            "To Stn", "Final N", "Final E"
+        }
+        For Each c As String In rCols
+            resultsGrid.Columns.Add(c, c)
+        Next
         cardResults.Controls.Add(resultsGrid)
+
+        ' Keep resultsGrid filling the card
+        AddHandler cardResults.Resize, Sub(s, ev)
+            resultsGrid.Width  = cardResults.ClientSize.Width
+            resultsGrid.Height = cardResults.ClientSize.Height - 28
+        End Sub
     End Sub
 
-    ' Override OnLoad to call the lower-half builder after the form has a real ClientSize
-    Protected Overrides Sub OnLoad(e As EventArgs)
-        MyBase.OnLoad(e)
-        BuildUILowerHalf()
-    End Sub
 
-    ' ── OnResize: keep the header card width in sync ──
-    Protected Overrides Sub OnResize(e As EventArgs)
-        MyBase.OnResize(e)
-        pnlHeader?.Invalidate()
-    End Sub
 
-    ' ──────────────────────────────────────────────────────────────────────────
-    '  FACTORY HELPERS
-    ' ──────────────────────────────────────────────────────────────────────────
-    Private Function MakeCard(x As Integer, y As Integer, w As Integer, h As Integer) As Panel
-        Dim p As New Panel With {
-            .Left      = x,
-            .Top       = y,
-            .Width     = w,
-            .Height    = h,
-            .BackColor = CLR_CARD,
-            .Padding   = New Padding(0)
+    ' =========================================================================
+    '  FACTORY / STYLE HELPERS
+    ' =========================================================================
+    Private Function MakeCard() As Panel
+        Return New Panel With {
+            .BackColor = S_CARD,
+            .Margin    = New Padding(0, 0, 0, 8)
         }
-        AddHandler p.Paint, AddressOf PaintCardBorder
-        Return p
     End Function
 
-    Private Function MakeLabel(txt As String, x As Integer, y As Integer) As Label
+    Private Function MakeSectionLabel(txt As String, x As Integer, y As Integer) As Label
         Return New Label With {
             .Text      = txt,
-            .Left      = x,
-            .Top       = y,
+            .Font      = F_SECTION,
+            .ForeColor = T_MUTED,
             .AutoSize  = True,
-            .ForeColor = CLR_TXT
+            .Left      = x,
+            .Top       = y
         }
     End Function
 
-    Private Function MakeStatLabel(txt As String, x As Integer, y As Integer) As Label
+    Private Function MakeFieldLabel(txt As String) As Label
         Return New Label With {
-            .Text      = txt,
-            .Left      = x,
-            .Top       = y,
-            .AutoSize  = True,
-            .Font      = FNT_STAT,
-            .ForeColor = CLR_TXT
+            .Text        = txt,
+            .Font        = F_LABEL,
+            .ForeColor   = T_PRIMARY,
+            .AutoSize    = False,
+            .Width       = TextRenderer.MeasureText(txt, F_LABEL).Width + 6,
+            .Height      = 28,
+            .TextAlign   = ContentAlignment.MiddleRight,
+            .Margin      = New Padding(0, 0, 4, 0)
         }
     End Function
 
-    Private Function MakeTextBox(defaultText As String, x As Integer, y As Integer, w As Integer) As TextBox
+    Private Function MakeInput(defaultVal As String, w As Integer) As TextBox
         Return New TextBox With {
-            .Text      = defaultText,
-            .Left      = x,
-            .Top       = y,
-            .Width     = w,
-            .Font      = FNT_BODY,
-            .BackColor = Color.White,
-            .ForeColor = CLR_TXT,
-            .BorderStyle = BorderStyle.FixedSingle
+            .Text        = defaultVal,
+            .Width       = w,
+            .Height      = 28,
+            .Font        = F_INPUT,
+            .BackColor   = S_CARD,
+            .ForeColor   = T_PRIMARY,
+            .BorderStyle = BorderStyle.FixedSingle,
+            .Margin      = New Padding(0, 0, 0, 0)
         }
     End Function
 
-    Private Function MakeButton(txt As String, x As Integer, y As Integer, w As Integer, h As Integer, bg As Color) As Button
+    Private Function MakeSpacer(w As Integer) As Panel
+        Return New Panel With {
+            .Width     = w,
+            .Height    = 1,
+            .BackColor = Color.Transparent
+        }
+    End Function
+
+    Private Function MakeBtn(txt As String, bg As Color, w As Integer, h As Integer) As Button
         Dim b As New Button With {
             .Text      = txt,
-            .Left      = x,
-            .Top       = y,
             .Width     = w,
             .Height    = h,
-            .Font      = FNT_BTN,
+            .Font      = F_BTN,
             .BackColor = bg,
-            .ForeColor = CLR_ACCENT_TXT,
+            .ForeColor = T_ONACCNT,
             .FlatStyle = FlatStyle.Flat,
-            .Cursor    = Cursors.Hand
+            .Cursor    = Cursors.Hand,
+            .Margin    = New Padding(0)
         }
         b.FlatAppearance.BorderSize = 0
         Return b
     End Function
 
-    Private Function BuildInputGrid() As DataGridView
-        Dim g As New DataGridView With {
-            .AllowUserToAddRows    = False,
-            .RowHeadersVisible     = False,
-            .BorderStyle           = BorderStyle.None,
-            .BackgroundColor       = CLR_CARD,
-            .GridColor             = CLR_BORDER,
-            .SelectionMode         = DataGridViewSelectionMode.FullRowSelect,
-            .AutoSizeRowsMode      = DataGridViewAutoSizeRowsMode.None,
-            .ColumnHeadersHeight   = 28,
-            .Font                  = FNT_BODY
+    ''' <summary>Adds a two-line stat tile (key label + bold value label) to a column in the stats TableLayoutPanel.</summary>
+    Private Function AddStatTile(tbl As TableLayoutPanel, col As Integer, key As String, initialVal As String) As Label
+        Dim cell As New Panel With {
+            .Dock      = DockStyle.Fill,
+            .BackColor = Color.Transparent,
+            .Padding   = New Padding(14, 10, 8, 8)
         }
-        g.RowTemplate.Height = 26
-        StyleGridHeaders(g)
-        g.Columns.Add("Station", "Station")
-        g.Columns.Add("Angle",   "Included Angle  (D  M  S)")
-        g.Columns.Add("Dist",    "Distance to Next Stn (m)")
-        g.Columns(0).Width = 200
-        g.Columns(1).Width = 260
-        g.Columns(2).Width = 240
-        AddHandler g.RowPostPaint, AddressOf AlternateRowColor
-        Return g
+        cell.Controls.Add(New Label With {
+            .Text      = key,
+            .Font      = F_STAT_K,
+            .ForeColor = T_MUTED,
+            .AutoSize  = True,
+            .Left      = 0,
+            .Top       = 0
+        })
+        Dim valLbl As New Label With {
+            .Text      = initialVal,
+            .Font      = F_STAT_V,
+            .ForeColor = T_PRIMARY,
+            .AutoSize  = True,
+            .Left      = 0,
+            .Top       = 18
+        }
+        cell.Controls.Add(valLbl)
+        tbl.Controls.Add(cell, col, 0)
+        Return valLbl
     End Function
 
-    Private Function BuildResultsGrid() As DataGridView
-        Dim g As New DataGridView With {
-            .AllowUserToAddRows  = False,
-            .ReadOnly            = True,
-            .RowHeadersVisible   = False,
-            .BorderStyle         = BorderStyle.None,
-            .BackgroundColor     = CLR_CARD,
-            .GridColor           = CLR_BORDER,
-            .SelectionMode       = DataGridViewSelectionMode.FullRowSelect,
-            .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            .ColumnHeadersHeight = 30,
-            .Font                = FNT_MONO
-        }
-        g.RowTemplate.Height = 26
-        StyleGridHeaders(g)
-        Dim cols() As String = {
-            "Leg", "Angle (DMS)", "Dist (m)",
-            "Fwd Bearing", "Back Bearing",
-            "DN (m)", "DE (m)",
-            "Corr.DN", "Corr.DE",
-            "Adj.DN", "Adj.DE",
-            "To Stn", "Final N", "Final E"
-        }
-        For Each c As String In cols
-            g.Columns.Add(c, c)
-        Next
-        AddHandler g.RowPostPaint, AddressOf AlternateRowColor
-        Return g
-    End Function
-
-    Private Sub StyleGridHeaders(g As DataGridView)
-        g.EnableHeadersVisualStyles           = False
-        g.ColumnHeadersDefaultCellStyle.BackColor   = CLR_GRID_HDR
-        g.ColumnHeadersDefaultCellStyle.ForeColor   = Color.White
-        g.ColumnHeadersDefaultCellStyle.Font        = FNT_H2
-        g.ColumnHeadersDefaultCellStyle.Alignment   = DataGridViewContentAlignment.MiddleCenter
-        g.DefaultCellStyle.ForeColor                = CLR_TXT
-        g.DefaultCellStyle.Alignment                = DataGridViewContentAlignment.MiddleRight
-        g.DefaultCellStyle.SelectionBackColor       = CLR_ACCENT
-        g.DefaultCellStyle.SelectionForeColor       = Color.White
-        g.AlternatingRowsDefaultCellStyle.BackColor = CLR_ROW_ALT
+    Private Sub ApplyGridStyle(g As DataGridView)
+        g.EnableHeadersVisualStyles                       = False
+        g.ColumnHeadersDefaultCellStyle.BackColor         = S_HEADER
+        g.ColumnHeadersDefaultCellStyle.ForeColor         = Color.FromArgb(209, 213, 219)
+        g.ColumnHeadersDefaultCellStyle.Font              = F_GRID_H
+        g.ColumnHeadersDefaultCellStyle.Alignment         = DataGridViewContentAlignment.MiddleLeft
+        g.ColumnHeadersDefaultCellStyle.Padding           = New Padding(6, 0, 0, 0)
+        g.DefaultCellStyle.BackColor                      = S_CARD
+        g.DefaultCellStyle.ForeColor                      = T_PRIMARY
+        g.DefaultCellStyle.SelectionBackColor             = A_LIGHT
+        g.DefaultCellStyle.SelectionForeColor             = T_PRIMARY
+        g.DefaultCellStyle.Padding                        = New Padding(6, 0, 6, 0)
+        g.AlternatingRowsDefaultCellStyle.BackColor       = Color.FromArgb(250, 252, 252)
     End Sub
 
-    ' ──────────────────────────────────────────────────────────────────────────
-    '  PAINT HANDLERS
-    ' ──────────────────────────────────────────────────────────────────────────
-    Private Sub PaintHeader(sender As Object, e As PaintEventArgs)
-        Dim p As Panel = CType(sender, Panel)
-        Using br As New LinearGradientBrush(p.ClientRectangle, CLR_HEADER_TOP, CLR_HEADER_BOT, LinearGradientMode.Horizontal)
-            e.Graphics.FillRectangle(br, p.ClientRectangle)
+    ' ── Accent line under header ──
+    Private Sub OnHeaderPaint(sender As Object, e As PaintEventArgs)
+        Dim p As Panel = DirectCast(sender, Panel)
+        Using br As New SolidBrush(A_MID)
+            e.Graphics.FillRectangle(br, 0, p.Height - 3, p.Width, 3)
         End Using
     End Sub
 
-    Private Sub PaintCardBorder(sender As Object, e As PaintEventArgs)
-        Dim p As Panel = CType(sender, Panel)
-        Using pen As New Pen(CLR_BORDER, 1)
-            e.Graphics.DrawRectangle(pen, 0, 0, p.Width - 1, p.Height - 1)
-        End Using
-    End Sub
-
-    Private Sub AlternateRowColor(sender As Object, e As DataGridViewRowPostPaintEventArgs)
-        Dim g As DataGridView = CType(sender, DataGridView)
-        If e.RowIndex Mod 2 = 1 Then
-            g.Rows(e.RowIndex).DefaultCellStyle.BackColor = CLR_ROW_ALT
-        Else
-            g.Rows(e.RowIndex).DefaultCellStyle.BackColor = CLR_CARD
-        End If
-    End Sub
 
 
-
-    ' ══════════════════════════════════════════════════════════════════════════
-    '  SAMPLE DATA
-    ' ══════════════════════════════════════════════════════════════════════════
+    ' =========================================================================
+    '  SAMPLE DATA  &  ROW MANAGEMENT
+    ' =========================================================================
     Private Sub LoadSampleData() Handles btnLoadSample.Click
         inputGrid.Rows.Clear()
         inputGrid.Rows.Add("A", "108 0 0", "100.02")
@@ -428,6 +486,12 @@ Public Class Form1
         txtStartBearing.Text = "60 0 0"
         txtStartN.Text       = "1000.000"
         txtStartE.Text       = "1000.000"
+        ' Reset stat tiles
+        For Each lbl As Label In {lblAngularVal, lblMisclosVal, lblLinearVal, lblAccuracyVal, lblAreaVal}
+            lbl.Text = "—"
+        Next
+        lblAreaVal.ForeColor = A_MID
+        resultsGrid.Rows.Clear()
     End Sub
 
     Private Sub AddRow_Click() Handles btnAddRow.Click
@@ -440,20 +504,18 @@ Public Class Form1
         End If
     End Sub
 
-    ' ══════════════════════════════════════════════════════════════════════════
+    ' =========================================================================
     '  MAIN COMPUTATION
-    ' ══════════════════════════════════════════════════════════════════════════
+    ' =========================================================================
     Private Sub ComputeTraverse_Click() Handles btnCompute.Click
         Try
-            Dim rowCount As Integer = inputGrid.Rows.Count
-            If rowCount < 5 Then
-                MessageBox.Show(
-                    "Please enter at least 5 stations as required by the assignment.",
+            Dim n As Integer = inputGrid.Rows.Count
+            If n < 5 Then
+                MessageBox.Show("Please enter at least 5 stations.",
                     "Insufficient Data", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 Return
             End If
 
-            Dim n As Integer = rowCount
             Dim stationNames(n - 1) As String
             Dim includedAngles(n - 1) As Double
             Dim distances(n - 1) As Double
@@ -468,97 +530,74 @@ Public Class Form1
             Dim startN       As Double = Convert.ToDouble(txtStartN.Text)
             Dim startE       As Double = Convert.ToDouble(txtStartE.Text)
 
-            ' ── 1. Angular misclosure ──────────────────────────────────────
-            Dim sumAngles As Double = 0
-            For Each a As Double In includedAngles
-                sumAngles += a
-            Next
-            Dim theoreticalSum     As Double = (n - 2) * 180.0
-            Dim angularMisclosure  As Double = sumAngles - theoreticalSum
+            ' 1. Angular misclosure
+            Dim sumAngles     As Double = 0
+            For Each a As Double In includedAngles : sumAngles += a : Next
+            Dim theoretical   As Double = (n - 2) * 180.0
+            Dim angMisclos    As Double = sumAngles - theoretical
 
-            lblAngularSum.Text  = "Sum of Angles = " & DecimalToDMS(sumAngles) &
-                                  "     Theoretical = " & DecimalToDMS(theoreticalSum)
-            lblAngularMisc.Text = "Angular Misclosure = " & DecimalToDMS(angularMisclosure)
+            lblAngularVal.Text = DecimalToDMS(sumAngles) & "  (th. " & DecimalToDMS(theoretical) & ")"
+            lblMisclosVal.Text = DecimalToDMS(angMisclos)
+            lblMisclosVal.ForeColor = If(Math.Abs(angMisclos) < 0.01, A_MID, Color.FromArgb(239, 68, 68))
 
-            ' Distribute angular correction equally across all stations
-            Dim angCorrPerStn As Double = -angularMisclosure / n
-            For i As Integer = 0 To n - 1
-                includedAngles(i) += angCorrPerStn
-            Next
+            ' Distribute angular correction
+            Dim corrPerStn As Double = -angMisclos / n
+            For i As Integer = 0 To n - 1 : includedAngles(i) += corrPerStn : Next
 
-            ' ── 2. Bearings, DN, DE ───────────────────────────────────────
-            '  FIX: interior-angle traverses use ADDITION not subtraction:
-            '       Forward bearing(i) = Back bearing(i-1) + Interior angle(i)
+            ' 2. Bearings, DN, DE
             Dim legs(n - 1) As LegResult
             Dim fb As Double = startBearing
 
             For i As Integer = 0 To n - 1
                 If i > 0 Then
-                    ' Back bearing of previous leg
                     Dim bbPrev As Double = (legs(i - 1).ForwardBearing + 180.0) Mod 360.0
-                    ' *** CORRECTED: + not - ***
-                    fb = (bbPrev + includedAngles(i)) Mod 360.0
+                    fb = (bbPrev + includedAngles(i)) Mod 360.0   ' CORRECTED: interior angle → addition
                     If fb < 0 Then fb += 360.0
                 End If
-
-                Dim bb   As Double = (fb + 180.0) Mod 360.0
-                Dim dist As Double = distances(i)
-                Dim rad  As Double = fb * Math.PI / 180.0
-
+                Dim rad As Double = fb * Math.PI / 180.0
                 legs(i).FromStation    = stationNames(i)
                 legs(i).ToStation      = stationNames((i + 1) Mod n)
                 legs(i).IncludedAngle  = includedAngles(i)
-                legs(i).Distance       = dist
+                legs(i).Distance       = distances(i)
                 legs(i).ForwardBearing = fb
-                legs(i).BackBearing    = bb
-                legs(i).DN             = dist * Math.Cos(rad)
-                legs(i).DE             = dist * Math.Sin(rad)
+                legs(i).BackBearing    = (fb + 180.0) Mod 360.0
+                legs(i).DN             = distances(i) * Math.Cos(rad)
+                legs(i).DE             = distances(i) * Math.Sin(rad)
             Next
 
-            ' ── 3. Linear misclosure & accuracy ───────────────────────────
-            Dim sumDN As Double = 0, sumDE As Double = 0, perimeter As Double = 0
+            ' 3. Linear misclosure
+            Dim sumDN As Double = 0, sumDE As Double = 0, perim As Double = 0
             For i As Integer = 0 To n - 1
-                sumDN     += legs(i).DN
-                sumDE     += legs(i).DE
-                perimeter += legs(i).Distance
+                sumDN += legs(i).DN : sumDE += legs(i).DE : perim += legs(i).Distance
             Next
-            Dim linearMisclosure    As Double = Math.Sqrt(sumDN ^ 2 + sumDE ^ 2)
-            Dim accuracyDenominator As Double = If(linearMisclosure = 0, 0, perimeter / linearMisclosure)
+            Dim linMisc  As Double = Math.Sqrt(sumDN ^ 2 + sumDE ^ 2)
+            Dim accDenom As Double = If(linMisc = 0, 0, perim / linMisc)
 
-            lblLinearMisc.Text = String.Format(
-                "Linear Misclosure = {0:0.0000} m     eN = {1:0.0000} m,  eE = {2:0.0000} m",
-                linearMisclosure, sumDN, sumDE)
-            lblAccuracy.Text = If(linearMisclosure = 0,
-                "Accuracy = Perfect Closure",
-                String.Format("Linear Accuracy = 1 : {0:0}", accuracyDenominator))
+            lblLinearVal.Text   = String.Format("{0:0.0000} m  (eN={1:0.0000}, eE={2:0.0000})", linMisc, sumDN, sumDE)
+            lblAccuracyVal.Text = If(linMisc = 0, "Perfect Closure", String.Format("1 : {0:0}", accDenom))
 
-            ' ── 4. Bowditch adjustment ─────────────────────────────────────
+            ' 4. Bowditch adjustment
             For i As Integer = 0 To n - 1
-                legs(i).CorrDN = -sumDN * (legs(i).Distance / perimeter)
-                legs(i).CorrDE = -sumDE * (legs(i).Distance / perimeter)
+                legs(i).CorrDN = -sumDN * (legs(i).Distance / perim)
+                legs(i).CorrDE = -sumDE * (legs(i).Distance / perim)
                 legs(i).AdjDN  = legs(i).DN + legs(i).CorrDN
                 legs(i).AdjDE  = legs(i).DE + legs(i).CorrDE
             Next
 
-            ' ── 5. Final coordinates ──────────────────────────────────────
+            ' 5. Final coordinates
             Dim finalN As New Dictionary(Of String, Double)
             Dim finalE As New Dictionary(Of String, Double)
             finalN(stationNames(0)) = startN
             finalE(stationNames(0)) = startE
-
-            Dim curN As Double = startN
-            Dim curE As Double = startE
+            Dim curN As Double = startN, curE As Double = startE
             For i As Integer = 0 To n - 1
-                curN += legs(i).AdjDN
-                curE += legs(i).AdjDE
-                legs(i).FinalN = curN
-                legs(i).FinalE = curE
-                ' Use index-keyed store to avoid duplicate-name overwrite issues
+                curN += legs(i).AdjDN : curE += legs(i).AdjDE
+                legs(i).FinalN = curN  : legs(i).FinalE = curE
                 finalN(legs(i).ToStation) = curN
                 finalE(legs(i).ToStation) = curE
             Next
 
-            ' ── 6. Area (Shoelace) ─────────────────────────────────────────
+            ' 6. Area (shoelace)
             Dim area As Double = 0
             For i As Integer = 0 To n - 1
                 Dim s1 As String = stationNames(i)
@@ -566,10 +605,9 @@ Public Class Form1
                 area += finalE(s1) * finalN(s2) - finalE(s2) * finalN(s1)
             Next
             area = Math.Abs(area) / 2.0
-            lblArea.Text = String.Format(
-                "Area = {0:0.000} m²     ({1:0.0000} hectares)", area, area / 10000.0)
+            lblAreaVal.Text = String.Format("{0:0.000} m²  ({1:0.0000} ha)", area, area / 10000.0)
 
-            ' ── 7. Populate results grid ───────────────────────────────────
+            ' 7. Results grid
             resultsGrid.Rows.Clear()
             For i As Integer = 0 To n - 1
                 resultsGrid.Rows.Add(
@@ -590,58 +628,40 @@ Public Class Form1
             Next
 
         Catch ex As Exception
-            MessageBox.Show("Error in input data: " & ex.Message,
-                            "Computation Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show("Input error: " & ex.Message,
+                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
 
 
-    ' ══════════════════════════════════════════════════════════════════════════
-    '  HELPER FUNCTIONS
-    ' ══════════════════════════════════════════════════════════════════════════
-
-    ''' <summary>
-    ''' Parses "D M S" (space-separated) or a plain decimal-degree string
-    ''' into decimal degrees.  Handles negative degrees correctly.
-    ''' </summary>
+    ' =========================================================================
+    '  HELPERS
+    ' =========================================================================
     Private Function ParseDMS(text As String) As Double
         text = text.Trim()
         If text.Contains(" ") Then
-            Dim parts() As String = text.Split({" "c}, StringSplitOptions.RemoveEmptyEntries)
-            Dim deg  As Double = Convert.ToDouble(parts(0))
-            Dim mins As Double = If(parts.Length > 1, Convert.ToDouble(parts(1)), 0)
-            Dim secs As Double = If(parts.Length > 2, Convert.ToDouble(parts(2)), 0)
-            Dim sign As Double = If(deg < 0, -1.0, 1.0)
-            Return sign * (Math.Abs(deg) + mins / 60.0 + secs / 3600.0)
-        Else
-            Return Convert.ToDouble(text)
+            Dim p() As String = text.Split({" "c}, StringSplitOptions.RemoveEmptyEntries)
+            Dim d As Double = Convert.ToDouble(p(0))
+            Dim m As Double = If(p.Length > 1, Convert.ToDouble(p(1)), 0)
+            Dim s As Double = If(p.Length > 2, Convert.ToDouble(p(2)), 0)
+            Dim sg As Double = If(d < 0, -1.0, 1.0)
+            Return sg * (Math.Abs(d) + m / 60.0 + s / 3600.0)
         End If
+        Return Convert.ToDouble(text)
     End Function
 
-    ''' <summary>
-    ''' Formats decimal degrees as D°MM'SS.S" for display.
-    ''' Works correctly for both positive and negative values.
-    ''' </summary>
-    Private Function DecimalToDMS(decimalDeg As Double) As String
-        Dim sign   As String  = If(decimalDeg < 0, "-", "")
-        Dim absVal As Double  = Math.Abs(decimalDeg)
-        Dim deg    As Integer = CInt(Math.Truncate(absVal))
-        Dim minFull As Double = (absVal - deg) * 60.0
-        Dim mins   As Integer = CInt(Math.Truncate(minFull))
-        Dim secs   As Double  = (minFull - mins) * 60.0
-        ' Guard against floating-point rounding pushing seconds to 60
-        If secs >= 60.0 Then
-            secs  = 0
-            mins += 1
-        End If
-        If mins >= 60 Then
-            mins  = 0
-            deg  += 1
-        End If
+    Private Function DecimalToDMS(dd As Double) As String
+        Dim sign   As String  = If(dd < 0, "-", "")
+        Dim av     As Double  = Math.Abs(dd)
+        Dim deg    As Integer = CInt(Math.Truncate(av))
+        Dim mFull  As Double  = (av - deg) * 60.0
+        Dim mins   As Integer = CInt(Math.Truncate(mFull))
+        Dim secs   As Double  = (mFull - mins) * 60.0
+        If secs >= 60.0 Then secs = 0 : mins += 1
+        If mins >= 60   Then mins = 0 : deg  += 1
         Return String.Format("{0}{1}{2}'{3:00.0}""",
-                             sign, deg.ToString() & ChrW(176),
-                             mins.ToString("00"), secs)
+            sign, deg.ToString() & ChrW(176), mins.ToString("00"), secs)
     End Function
 
 End Class
