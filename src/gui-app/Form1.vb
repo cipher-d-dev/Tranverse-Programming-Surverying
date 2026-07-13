@@ -51,7 +51,7 @@ Public Class Form1
     Private Shared ReadOnly F_BTN     As New Font(FACE,  9.5F, FontStyle.Bold)
     Private Shared ReadOnly F_BTN_LG  As New Font(FACE, 10.5F, FontStyle.Bold)
     Private Shared ReadOnly F_STAT_K  As New Font(FACE,  7.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_STAT_V  As New Font(FACE, 19,    FontStyle.Bold)
+    Private Shared ReadOnly F_STAT_V  As New Font(FACE, 11,    FontStyle.Bold)
     Private Shared ReadOnly F_GRID_H  As New Font(FACE,  8,    FontStyle.Bold)
     Private Shared ReadOnly F_GRID_C  As New Font(FACE_MONO, 9, FontStyle.Regular)
 
@@ -580,7 +580,7 @@ Public Class Form1
             .ForeColor = T_MUTED,
             .AutoSize  = True,
             .Left      = 14,
-            .Top       = 13
+            .Top       = 10
         })
         Dim valLbl As New Label With {
             .Text      = initialVal,
@@ -588,7 +588,7 @@ Public Class Form1
             .ForeColor = T_HIGH,
             .AutoSize  = True,
             .Left      = 14,
-            .Top       = 30
+            .Top       = 26
         }
         cell.Controls.Add(valLbl)
         tbl.Controls.Add(outer, col, 0)
@@ -1071,11 +1071,12 @@ Public Class RoundButton
     End Sub
 
     Private Function Lerp(a As Color, b As Color, t As Double) As Color
-        Dim tc As Double = Math.Max(0.0, Math.Min(1.0, t))   ' clamp t to [0,1]
-        Return Color.FromArgb(
-            Math.Max(0, Math.Min(255, CInt(a.R + (b.R - a.R) * tc))),
-            Math.Max(0, Math.Min(255, CInt(a.G + (b.G - a.G) * tc))),
-            Math.Max(0, Math.Min(255, CInt(a.B + (b.B - a.B) * tc))))
+        Dim tc As Double = Math.Max(0.0, Math.Min(1.0, t))
+        ' Clamp the Double result to [0,255] BEFORE CInt to prevent overflow
+        Dim r As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.R + (b.R - a.R) * tc)))
+        Dim g As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.G + (b.G - a.G) * tc)))
+        Dim bl As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.B + (b.B - a.B) * tc)))
+        Return Color.FromArgb(r, g, bl)
     End Function
 
     Protected Overrides Sub OnPaint(e As PaintEventArgs)
