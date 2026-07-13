@@ -116,8 +116,10 @@ Module TraverseProgramme
             Dim toStn As String = stationNames((i + 1) Mod n)
 
             If i > 0 Then
+                ' Back bearing of previous leg
                 Dim bbPrev As Double = (legs(i - 1).ForwardBearing + 180.0) Mod 360.0
-                fb = (bbPrev - includedAngles(i)) Mod 360.0
+                ' Interior-angle traverse: next fwd bearing = back bearing + interior angle
+                fb = (bbPrev + includedAngles(i)) Mod 360.0
                 If fb < 0 Then fb += 360.0
             End If
 
