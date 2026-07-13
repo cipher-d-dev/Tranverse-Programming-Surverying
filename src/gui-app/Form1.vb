@@ -1018,10 +1018,8 @@ Public Class RoundButton
     Public Property HasBorder   As Boolean = False
     Public Property Radius      As Integer = 10
 
-    Private hoverT    As Double  = 0.0
-    Private targetT   As Double  = 0.0
-    Private _pressed  As Boolean = False
-    Private animTimer As Timer
+    Private _hover  As Boolean = False
+    Private _pressed As Boolean = False
 
     Public Sub New()
         SetStyle(ControlStyles.UserPaint Or
@@ -1029,70 +1027,51 @@ Public Class RoundButton
                  ControlStyles.OptimizedDoubleBuffer, True)
         FlatStyle = FlatStyle.Flat
         FlatAppearance.BorderSize = 0
-        animTimer = New Timer With {.Interval = 15}
-        AddHandler animTimer.Tick, AddressOf OnAnimTick
-    End Sub
-
-    Private Sub OnAnimTick(sender As Object, e As EventArgs)
-        Const stepV As Double = 0.22
-        If hoverT < targetT Then
-            hoverT = Math.Min(targetT, hoverT + stepV)
-        ElseIf hoverT > targetT Then
-            hoverT = Math.Max(targetT, hoverT - stepV)
-        End If
-        hoverT = Math.Max(0.0, Math.Min(1.0, hoverT))  ' hard clamp — prevents Lerp overflow
-        Invalidate()
-        If hoverT = targetT Then animTimer.Stop()
     End Sub
 
     Protected Overrides Sub OnMouseEnter(e As EventArgs)
-        targetT = 1.0
-        If Not animTimer.Enabled Then animTimer.Start()
+        _hover = True : Invalidate()
         MyBase.OnMouseEnter(e)
     End Sub
 
     Protected Overrides Sub OnMouseLeave(e As EventArgs)
-        targetT  = 0.0
-        _pressed = False
-        If Not animTimer.Enabled Then animTimer.Start()
+        _hover = False : _pressed = False : Invalidate()
         MyBase.OnMouseLeave(e)
     End Sub
 
     Protected Overrides Sub OnMouseDown(e As MouseEventArgs)
-        _pressed = True
-        Invalidate()
+        _pressed = True : Invalidate()
         MyBase.OnMouseDown(e)
     End Sub
 
     Protected Overrides Sub OnMouseUp(e As MouseEventArgs)
-        _pressed = False
-        Invalidate()
+        _pressed = False : Invalidate()
         MyBase.OnMouseUp(e)
     End Sub
 
-    Private Function Lerp(a As Color, b As Color, t As Double) As Color
-        Dim tc As Double = Math.Max(0.0, Math.Min(1.0, t))
-        ' Clamp the Double result to [0,255] BEFORE CInt to prevent overflow
-        Dim r As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.R + (b.R - a.R) * tc)))
-        Dim g As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.G + (b.G - a.G) * tc)))
-        Dim bl As Integer = CInt(Math.Max(0.0, Math.Min(255.0, a.B + (b.B - a.B) * tc)))
-        Return Color.FromArgb(r, g, bl)
-    End Function
-
     Protected Overrides Sub OnPaint(e As PaintEventArgs)
         Dim g As Graphics = e.Graphics
-        g.SmoothingMode      = SmoothingMode.AntiAlias
-        g.TextRenderingHint  = Drawing.Text.TextRenderingHint.ClearTypeGridFit
+        g.SmoothingMode     = SmoothingMode.AntiAlias
+        g.TextRenderingHint = Drawing.Text.TextRenderingHint.ClearTypeGridFit
 
-        Dim bg  As Color    = If(_pressed, PressColor, Lerp(FillColor, HoverColor, hoverT))
+        ' Pick colour based on state — no floating-point arithmetic at all
+        Dim bg As Color
+        If _pressed Then
+            bg = PressColor
+        ElseIf _hover Then
+            bg = HoverColor
+        Else
+            bg = FillColor
+        End If
+
         Dim r   As New Rectangle(0, 0, Width - 1, Height - 1)
-        Dim rad As Integer  = Math.Min(Radius * 2, Height)
+        Dim rad As Integer = Math.Min(Radius * 2, Height)
 
         Using path As New GraphicsPath()
-            path.AddArc(r.X,             r.Y,             rad, rad, 180, 90)
-            path.AddArc(r.Right - rad,   r.Y,             rad, rad, 270, 90)
-            path.AddArc(r.Right - rad,   r.Bottom - rad,  rad, rad, 0,   90)
-            path.AddArc(r.X,             r.Bottom - rad,  rad, rad, 90,  90)
+            path.AddArc(r.X,           r.Y,            rad, rad, 180, 90)
+            path.AddArc(r.Right - rad, r.Y,            rad, rad, 270, 90)
+            path.AddArc(r.Right - rad, r.Bottom - rad, rad, rad,   0, 90)
+            path.AddArc(r.X,           r.Bottom - rad, rad, rad,  90, 90)
             path.CloseFigure()
 
             Using br As New SolidBrush(bg)
@@ -1116,12 +1095,10 @@ Public Class RoundButton
     End Sub
 
     Protected Overrides Sub Dispose(disposing As Boolean)
-        If disposing Then
-            If animTimer IsNot Nothing Then animTimer.Dispose()
-        End If
         MyBase.Dispose(disposing)
     End Sub
 End Class
+
 
 
 
