@@ -1040,6 +1040,7 @@ Public Class RoundButton
         ElseIf hoverT > targetT Then
             hoverT = Math.Max(targetT, hoverT - stepV)
         End If
+        hoverT = Math.Max(0.0, Math.Min(1.0, hoverT))  ' hard clamp — prevents Lerp overflow
         Invalidate()
         If hoverT = targetT Then animTimer.Stop()
     End Sub
@@ -1070,10 +1071,11 @@ Public Class RoundButton
     End Sub
 
     Private Function Lerp(a As Color, b As Color, t As Double) As Color
+        Dim tc As Double = Math.Max(0.0, Math.Min(1.0, t))   ' clamp t to [0,1]
         Return Color.FromArgb(
-            CInt(a.R + (b.R - a.R) * t),
-            CInt(a.G + (b.G - a.G) * t),
-            CInt(a.B + (b.B - a.B) * t))
+            Math.Max(0, Math.Min(255, CInt(a.R + (b.R - a.R) * tc))),
+            Math.Max(0, Math.Min(255, CInt(a.G + (b.G - a.G) * tc))),
+            Math.Max(0, Math.Min(255, CInt(a.B + (b.B - a.B) * tc))))
     End Function
 
     Protected Overrides Sub OnPaint(e As PaintEventArgs)
