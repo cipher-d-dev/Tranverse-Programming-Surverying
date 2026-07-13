@@ -14,38 +14,64 @@ Public Class Form1
     Inherits Form
 
     ' =========================================================================
-    '  DESIGN TOKENS  — one place to change the whole look
+    '  DESIGN TOKENS  — 60-30-10 rule applied
+    '  60 % → Slate-50 surfaces (dominant neutral)
+    '  30 % → Slate-800 structural chrome (header, grid headers, primary text)
+    '  10 % → Indigo-600 accent (buttons, links, highlights only)
     ' =========================================================================
     ' Surfaces
-    Private Shared ReadOnly S_PAGE    As Color = Color.FromArgb(248, 249, 251)  ' off-white page
-    Private Shared ReadOnly S_CARD    As Color = Color.White                    ' card surface
-    Private Shared ReadOnly S_HEADER  As Color = Color.FromArgb(28,  35,  51)  ' near-black slate
-    ' Accent  (single teal — every interactive element uses only this)
-    Private Shared ReadOnly A_MID     As Color = Color.FromArgb( 20, 184, 166)  ' teal-500
-    Private Shared ReadOnly A_DARK    As Color = Color.FromArgb( 13, 148, 136)  ' teal-600 (hover)
-    Private Shared ReadOnly A_LIGHT   As Color = Color.FromArgb(204, 245, 241)  ' teal-100 (row tint)
+    Private Shared ReadOnly S_PAGE    As Color = Color.FromArgb(248, 250, 252)  ' slate-50
+    Private Shared ReadOnly S_CARD    As Color = Color.FromArgb(255, 255, 255)  ' white
+    Private Shared ReadOnly S_HEADER  As Color = Color.FromArgb( 15,  23,  42)  ' slate-900
+    Private Shared ReadOnly S_INPUT   As Color = Color.FromArgb(249, 250, 251)  ' gray-50
+    ' Accent — Indigo-600, single hue, used for every interactive element
+    Private Shared ReadOnly A_BASE    As Color = Color.FromArgb( 79,  70, 229)  ' indigo-600
+    Private Shared ReadOnly A_HOVER   As Color = Color.FromArgb( 67,  56, 202)  ' indigo-700
+    Private Shared ReadOnly A_PRESS   As Color = Color.FromArgb( 55,  48, 163)  ' indigo-800
+    Private Shared ReadOnly A_TINT    As Color = Color.FromArgb(238, 242, 255)  ' indigo-50  (row alt)
     ' Text
-    Private Shared ReadOnly T_PRIMARY As Color = Color.FromArgb( 17,  24,  39)  ' near-black
-    Private Shared ReadOnly T_MUTED   As Color = Color.FromArgb(107, 114, 128)  ' gray-500
-    Private Shared ReadOnly T_ONSLATE As Color = Color.White
-    Private Shared ReadOnly T_ONACCNT As Color = Color.White
-    ' Borders / dividers
-    Private Shared ReadOnly B_SUBTLE  As Color = Color.FromArgb(229, 231, 235)  ' gray-200
-    Private Shared ReadOnly B_FOCUS   As Color = Color.FromArgb( 20, 184, 166)  ' teal border on focus
+    Private Shared ReadOnly T_HIGH    As Color = Color.FromArgb( 15,  23,  42)  ' slate-900 — headings
+    Private Shared ReadOnly T_BODY    As Color = Color.FromArgb( 51,  65,  85)  ' slate-700 — body
+    Private Shared ReadOnly T_MUTED   As Color = Color.FromArgb(100, 116, 139)  ' slate-500 — captions
+    Private Shared ReadOnly T_ON_DARK As Color = Color.FromArgb(241, 245, 249)  ' slate-100 — on dark bg
+    Private Shared ReadOnly T_ON_ACC  As Color = Color.White
+    ' Borders
+    Private Shared ReadOnly B_DEFAULT As Color = Color.FromArgb(226, 232, 240)  ' slate-200
+    Private Shared ReadOnly B_STRONG  As Color = Color.FromArgb(203, 213, 225)  ' slate-300
 
     ' =========================================================================
-    '  TYPOGRAPHY
+    '  TYPOGRAPHY  — Segoe UI Variable (Win 11 system font); falls back to
+    '  Segoe UI on Win 10.  Strict scale: Display → Body → Caption.
     ' =========================================================================
-    Private Shared ReadOnly F_TITLE   As New Font("Segoe UI",  15, FontStyle.Bold)
-    Private Shared ReadOnly F_SUB     As New Font("Segoe UI",   9, FontStyle.Regular)
-    Private Shared ReadOnly F_SECTION As New Font("Segoe UI",   8, FontStyle.Bold)
-    Private Shared ReadOnly F_LABEL   As New Font("Segoe UI",   9, FontStyle.Regular)
-    Private Shared ReadOnly F_INPUT   As New Font("Segoe UI",   9, FontStyle.Regular)
-    Private Shared ReadOnly F_BTN     As New Font("Segoe UI",   9, FontStyle.Bold)
-    Private Shared ReadOnly F_STAT_K  As New Font("Segoe UI",   8, FontStyle.Regular)   ' stat key
-    Private Shared ReadOnly F_STAT_V  As New Font("Segoe UI",  10, FontStyle.Bold)      ' stat value
-    Private Shared ReadOnly F_GRID_H  As New Font("Segoe UI",   8, FontStyle.Bold)
-    Private Shared ReadOnly F_GRID_C  As New Font("Consolas",   9, FontStyle.Regular)
+    Private Shared ReadOnly FACE As String = "Segoe UI Variable"   ' Win11 variable font
+    Private Shared ReadOnly FACE_MONO As String = "Cascadia Mono"  ' Win11 mono; falls back gracefully
+
+    Private Shared ReadOnly F_DISPLAY As New Font(FACE, 16, FontStyle.Bold)     ' app title
+    Private Shared ReadOnly F_H2      As New Font(FACE, 11, FontStyle.Bold)     ' section headings
+    Private Shared ReadOnly F_BODY    As New Font(FACE,  9, FontStyle.Regular)  ' default body
+    Private Shared ReadOnly F_BODY_B  As New Font(FACE,  9, FontStyle.Bold)     ' body emphasis
+    Private Shared ReadOnly F_CAPTION As New Font(FACE,  8, FontStyle.Regular)  ' hints / captions
+    Private Shared ReadOnly F_BTN     As New Font(FACE,  9, FontStyle.Bold)     ' button labels
+    Private Shared ReadOnly F_STAT_K  As New Font(FACE,  8, FontStyle.Regular)  ' stat tile key
+    Private Shared ReadOnly F_STAT_V  As New Font(FACE, 13, FontStyle.Bold)     ' stat tile value
+    Private Shared ReadOnly F_GRID_H  As New Font(FACE,  8, FontStyle.Bold)     ' grid header
+    Private Shared ReadOnly F_GRID_C  As New Font(FACE_MONO, 9, FontStyle.Regular) ' grid cell
+
+    ' Colour aliases — map old names to new tokens so no code below breaks
+    Private Shared ReadOnly A_MID     As Color = Color.FromArgb( 79,  70, 229)  ' = A_BASE
+    Private Shared ReadOnly A_DARK    As Color = Color.FromArgb( 67,  56, 202)  ' = A_HOVER
+    Private Shared ReadOnly A_LIGHT   As Color = Color.FromArgb(238, 242, 255)  ' = A_TINT
+    Private Shared ReadOnly T_PRIMARY As Color = Color.FromArgb( 51,  65,  85)  ' = T_BODY
+    Private Shared ReadOnly T_ONSLATE As Color = Color.FromArgb(241, 245, 249)  ' = T_ON_DARK
+    Private Shared ReadOnly T_ONACCNT As Color = Color.White
+    Private Shared ReadOnly B_SUBTLE  As Color = Color.FromArgb(226, 232, 240)  ' = B_DEFAULT
+
+    ' Font aliases — keep old names alive so no code below breaks
+    Private Shared ReadOnly F_LABEL   As Font = F_BODY
+    Private Shared ReadOnly F_INPUT   As Font = F_BODY
+    Private Shared ReadOnly F_SECTION As Font = F_CAPTION
+    Private Shared ReadOnly F_TITLE   As Font = F_DISPLAY
+    Private Shared ReadOnly F_SUB     As Font = F_BODY
 
     ' =========================================================================
     '  CONTROLS
@@ -54,6 +80,9 @@ Public Class Form1
     Private WithEvents btnLoadSample As Button
     Private WithEvents btnAddRow     As Button
     Private WithEvents btnRemoveRow  As Button
+    Private WithEvents btnReset      As Button
+    Private WithEvents btnSampleMenu As Button
+    Private sampleMenu               As ContextMenuStrip
 
     Private inputGrid   As DataGridView
     Private resultsGrid As DataGridView
@@ -136,19 +165,19 @@ Public Class Form1
 
         header.Controls.Add(New Label With {
             .Text      = "SVY 323  —  Closed Traverse Computation",
-            .Font      = F_TITLE,
-            .ForeColor = T_ONSLATE,
+            .Font      = F_DISPLAY,
+            .ForeColor = T_ON_DARK,
             .AutoSize  = True,
             .Left      = 24,
-            .Top       = 14
+            .Top       = 12
         })
         header.Controls.Add(New Label With {
             .Text      = "Angular Adjustment  ·  Bowditch (Compass Rule)  ·  Bearings  ·  Latitudes & Departures  ·  Final Coordinates  ·  Area",
-            .Font      = F_SUB,
-            .ForeColor = Color.FromArgb(156, 163, 175),
+            .Font      = F_BODY,
+            .ForeColor = T_MUTED,
             .AutoSize  = True,
             .Left      = 26,
-            .Top       = 46
+            .Top       = 44
         })
 
         ' ── Body TableLayout: input section + compute bar + stats + results ──
@@ -160,9 +189,9 @@ Public Class Form1
             .BackColor   = S_PAGE,
             .Font        = F_LABEL
         }
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 210))   ' input section
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute,  48))   ' compute button
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute,  96))   ' stats bar
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))   ' input section
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute,  54))   ' compute button
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 100))   ' stats bar
         body.RowStyles.Add(New RowStyle(SizeType.Percent,  100))   ' results (fills)
         body.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
         outer.Controls.Add(body, 0, 1)
@@ -170,7 +199,7 @@ Public Class Form1
         ' ── ROW 0 : Input section ─────────────────────────────────────────────
         Dim cardInput As Panel = MakeCard()
         cardInput.Dock    = DockStyle.Fill
-        cardInput.Padding = New Padding(16, 10, 16, 10)
+        cardInput.Padding = New Padding(20, 14, 20, 14)
         cardInput.Font    = F_LABEL
         body.Controls.Add(cardInput, 0, 0)
 
@@ -200,14 +229,25 @@ Public Class Form1
         txtStartE = MakeInput("1000.000", 96)
         flowCtrl.Controls.Add(txtStartE)
         flowCtrl.Controls.Add(MakeSpacer(32))
-        btnLoadSample = MakeBtn("↺  Load Sample",  A_MID, 118, 28)
-        btnAddRow     = MakeBtn("+  Add Row",       A_MID, 94,  28)
-        btnRemoveRow  = MakeBtn("−  Remove",        Color.FromArgb(75,85,99), 84, 28)
+        btnLoadSample = MakeBtn("↺  Sample Data ▾", A_MID, 138, 36)
+        btnAddRow     = MakeBtn("+  Add Row",        A_MID, 100, 36)
+        btnRemoveRow  = MakeBtn("−  Remove Row",     Color.FromArgb(71, 85, 105), 110, 36)
+        btnReset      = MakeBtn("⊘  Reset",          Color.FromArgb(71, 85, 105), 84,  36)
         flowCtrl.Controls.Add(btnLoadSample)
-        flowCtrl.Controls.Add(MakeSpacer(6))
+        flowCtrl.Controls.Add(MakeSpacer(8))
         flowCtrl.Controls.Add(btnAddRow)
-        flowCtrl.Controls.Add(MakeSpacer(4))
+        flowCtrl.Controls.Add(MakeSpacer(6))
         flowCtrl.Controls.Add(btnRemoveRow)
+        flowCtrl.Controls.Add(MakeSpacer(6))
+        flowCtrl.Controls.Add(btnReset)
+
+        ' Build the sample-data dropdown menu
+        sampleMenu = New ContextMenuStrip()
+        sampleMenu.Font = F_BODY
+        sampleMenu.Items.Add("Pentagon  (5 equal stations, 108° each)",     Nothing, AddressOf LoadSample_Pentagon)
+        sampleMenu.Items.Add("Triangle  (3 stations, equilateral ~60°)",    Nothing, AddressOf LoadSample_Triangle)
+        sampleMenu.Items.Add("Quadrilateral  (4 stations, mixed angles)",   Nothing, AddressOf LoadSample_Quad)
+        sampleMenu.Items.Add("Hexagon  (6 stations, irregular distances)",  Nothing, AddressOf LoadSample_Hex)
         cardInput.Controls.Add(flowCtrl)
 
         ' Hint text
@@ -254,20 +294,20 @@ Public Class Form1
         Dim pnlCompute As New Panel With {
             .Dock      = DockStyle.Fill,
             .BackColor = S_PAGE,
-            .Padding   = New Padding(0, 6, 0, 6),
+            .Padding   = New Padding(0, 8, 0, 8),
             .Font      = F_LABEL
         }
         body.Controls.Add(pnlCompute, 0, 1)
 
         btnCompute = New RoundButton With {
-            .Text      = "▶   COMPUTE TRAVERSE",
-            .Dock      = DockStyle.Fill,
-            .Font      = New Font("Segoe UI", 10, FontStyle.Bold),
-            .BackColor = A_MID,
-            .ForeColor = T_ONACCNT,
-            .HoverColor = A_DARK,
-            .Cursor    = Cursors.Hand,
-            .TabStop   = False
+            .Text       = "▶   COMPUTE TRAVERSE",
+            .Dock       = DockStyle.Fill,
+            .Font       = New Font(FACE, 11, FontStyle.Bold),
+            .BackColor  = A_BASE,
+            .ForeColor  = T_ON_ACC,
+            .HoverColor = A_HOVER,
+            .Cursor     = Cursors.Hand,
+            .TabStop    = False
         }
         pnlCompute.Controls.Add(btnCompute)
 
@@ -297,7 +337,7 @@ Public Class Form1
         lblLinearVal   = AddStatTile(statFlow, 2, "Linear Misclosure",   "—")
         lblAccuracyVal = AddStatTile(statFlow, 3, "Linear Accuracy",     "—")
         lblAreaVal     = AddStatTile(statFlow, 4, "Enclosed Area",       "—")
-        lblAreaVal.ForeColor = A_MID   ' highlight the area tile value
+        lblAreaVal.ForeColor = A_BASE   ' highlight the area tile value
 
         ' ── ROW 3 : Results grid ──────────────────────────────────────────────
         Dim cardResults As Panel = MakeCard()
@@ -476,22 +516,22 @@ Public Class Form1
     Private Sub ApplyGridStyle(g As DataGridView)
         g.EnableHeadersVisualStyles                       = False
         g.ColumnHeadersDefaultCellStyle.BackColor         = S_HEADER
-        g.ColumnHeadersDefaultCellStyle.ForeColor         = Color.FromArgb(209, 213, 219)
+        g.ColumnHeadersDefaultCellStyle.ForeColor         = T_ON_DARK
         g.ColumnHeadersDefaultCellStyle.Font              = F_GRID_H
         g.ColumnHeadersDefaultCellStyle.Alignment         = DataGridViewContentAlignment.MiddleLeft
-        g.ColumnHeadersDefaultCellStyle.Padding           = New Padding(6, 0, 0, 0)
+        g.ColumnHeadersDefaultCellStyle.Padding           = New Padding(8, 0, 0, 0)
         g.DefaultCellStyle.BackColor                      = S_CARD
-        g.DefaultCellStyle.ForeColor                      = T_PRIMARY
-        g.DefaultCellStyle.SelectionBackColor             = A_LIGHT
-        g.DefaultCellStyle.SelectionForeColor             = T_PRIMARY
-        g.DefaultCellStyle.Padding                        = New Padding(6, 0, 6, 0)
-        g.AlternatingRowsDefaultCellStyle.BackColor       = Color.FromArgb(250, 252, 252)
+        g.DefaultCellStyle.ForeColor                      = T_BODY
+        g.DefaultCellStyle.SelectionBackColor             = A_TINT
+        g.DefaultCellStyle.SelectionForeColor             = T_HIGH
+        g.DefaultCellStyle.Padding                        = New Padding(8, 0, 8, 0)
+        g.AlternatingRowsDefaultCellStyle.BackColor       = Color.FromArgb(248, 250, 252)
     End Sub
 
     ' ── Accent line under header ──
     Private Sub OnHeaderPaint(sender As Object, e As PaintEventArgs)
         Dim p As Panel = DirectCast(sender, Panel)
-        Using br As New SolidBrush(A_MID)
+        Using br As New SolidBrush(A_BASE)
             e.Graphics.FillRectangle(br, 0, p.Height - 3, p.Width, 3)
         End Using
     End Sub
@@ -513,26 +553,60 @@ Public Class Form1
 
 
     ' =========================================================================
-    '  SAMPLE DATA  &  ROW MANAGEMENT
+    '  SAMPLE DATA  —  dropdown menu opens on btnLoadSample click
     ' =========================================================================
     Private Sub LoadSampleData() Handles btnLoadSample.Click
-        inputGrid.Rows.Clear()
-        inputGrid.Rows.Add("A", "108 0 0", "100.02")
-        inputGrid.Rows.Add("B", "108 0 0",  "99.97")
-        inputGrid.Rows.Add("C", "108 0 0", "100.05")
-        inputGrid.Rows.Add("D", "108 0 0",  "99.94")
-        inputGrid.Rows.Add("E", "108 0 0", "100.03")
-        txtStartBearing.Text = "60 0 0"
-        txtStartN.Text       = "1000.000"
-        txtStartE.Text       = "1000.000"
-        ' Reset stat tiles
-        For Each lbl As Label In {lblAngularVal, lblMisclosVal, lblLinearVal, lblAccuracyVal, lblAreaVal}
-            lbl.Text = "—"
-        Next
-        lblAreaVal.ForeColor = A_MID
-        resultsGrid.Rows.Clear()
+        ' Show the dropdown directly below the button
+        sampleMenu.Show(btnLoadSample, New Point(0, btnLoadSample.Height))
     End Sub
 
+    ' ── Sample 1: classic regular pentagon (all angles equal, slight dist variance)
+    Private Sub LoadSample_Pentagon(sender As Object, e As EventArgs)
+        ClearAll()
+        txtStartBearing.Text = "60 0 0"
+        txtStartN.Text = "1000.000" : txtStartE.Text = "1000.000"
+        inputGrid.Rows.Add("A", "108 0 0",  "100.02")
+        inputGrid.Rows.Add("B", "108 0 0",  " 99.97")
+        inputGrid.Rows.Add("C", "108 0 0",  "100.05")
+        inputGrid.Rows.Add("D", "108 0 0",  " 99.94")
+        inputGrid.Rows.Add("E", "108 0 0",  "100.03")
+    End Sub
+
+    ' ── Sample 2: equilateral triangle with slight angle errors
+    Private Sub LoadSample_Triangle(sender As Object, e As EventArgs)
+        ClearAll()
+        txtStartBearing.Text = "30 0 0"
+        txtStartN.Text = "500.000" : txtStartE.Text = "500.000"
+        inputGrid.Rows.Add("P", "60 0 10", "120.05")
+        inputGrid.Rows.Add("Q", "59 59 40", "119.98")
+        inputGrid.Rows.Add("R", "60 0 20", "120.00")
+    End Sub
+
+    ' ── Sample 3: irregular quadrilateral — mixed angles, unequal legs
+    Private Sub LoadSample_Quad(sender As Object, e As EventArgs)
+        ClearAll()
+        txtStartBearing.Text = "45 0 0"
+        txtStartN.Text = "2000.000" : txtStartE.Text = "1500.000"
+        inputGrid.Rows.Add("W", "95 12 30",  "85.44")
+        inputGrid.Rows.Add("X", "82 47 50", "102.18")
+        inputGrid.Rows.Add("Y", "91 35 20",  "78.65")
+        inputGrid.Rows.Add("Z", "90 24 40",  "93.30")
+    End Sub
+
+    ' ── Sample 4: irregular hexagon — 6 stations, all angles and distances differ
+    Private Sub LoadSample_Hex(sender As Object, e As EventArgs)
+        ClearAll()
+        txtStartBearing.Text = "22 30 0"
+        txtStartN.Text = "5000.000" : txtStartE.Text = "5000.000"
+        inputGrid.Rows.Add("A", "118 42 10",  "75.20")
+        inputGrid.Rows.Add("B", "122 15 50",  "88.45")
+        inputGrid.Rows.Add("C", "115 30 20",  "92.10")
+        inputGrid.Rows.Add("D", "120 48 40",  "68.75")
+        inputGrid.Rows.Add("E", "119 05 30",  "81.30")
+        inputGrid.Rows.Add("F", "123 37 50",  "77.60")
+    End Sub
+
+    ' ── Row management ──────────────────────────────────────────────────────
     Private Sub AddRow_Click() Handles btnAddRow.Click
         inputGrid.Rows.Add("", "0 0 0", "0.00")
     End Sub
@@ -541,6 +615,24 @@ Public Class Form1
         If inputGrid.Rows.Count > 0 AndAlso inputGrid.CurrentRow IsNot Nothing Then
             inputGrid.Rows.Remove(inputGrid.CurrentRow)
         End If
+    End Sub
+
+    Private Sub Reset_Click() Handles btnReset.Click
+        ClearAll()
+        txtStartBearing.Text = "0 0 0"
+        txtStartN.Text = "0.000"
+        txtStartE.Text = "0.000"
+    End Sub
+
+    ''' <summary>Clears grid, stat tiles and results grid.</summary>
+    Private Sub ClearAll()
+        inputGrid.Rows.Clear()
+        resultsGrid.Rows.Clear()
+        For Each lbl As Label In {lblAngularVal, lblMisclosVal, lblLinearVal, lblAccuracyVal, lblAreaVal}
+            lbl.Text     = "—"
+            lbl.ForeColor = T_BODY
+        Next
+        lblAreaVal.ForeColor = A_BASE
     End Sub
 
     ' =========================================================================
@@ -577,7 +669,7 @@ Public Class Form1
 
             lblAngularVal.Text = DecimalToDMS(sumAngles) & "  (th. " & DecimalToDMS(theoretical) & ")"
             lblMisclosVal.Text = DecimalToDMS(angMisclos)
-            lblMisclosVal.ForeColor = If(Math.Abs(angMisclos) < 0.01, A_MID, Color.FromArgb(239, 68, 68))
+            lblMisclosVal.ForeColor = If(Math.Abs(angMisclos) < 0.01, A_BASE, Color.FromArgb(220, 38, 38))
 
             ' Distribute angular correction
             Dim corrPerStn As Double = -angMisclos / n
@@ -713,7 +805,7 @@ End Class
 Public Class RoundButton
     Inherits Button
 
-    Public Property HoverColor As Color = Color.FromArgb(13, 148, 136)
+    Public Property HoverColor As Color = Color.FromArgb(67, 56, 202)  ' indigo-700
     Public Property Radius     As Integer = 8
 
     Private _isHovered  As Boolean = False
