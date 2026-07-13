@@ -58,7 +58,7 @@ Public Class Form1
     '==========================================================================
     '  CONTROL FIELDS
     '==========================================================================
-    Private WithEvents btnCompute    As RoundButton
+    Private WithEvents btnCompute    As Button
     Private WithEvents btnLoadSample As RoundButton
     Private WithEvents btnAddRow     As RoundButton
     Private WithEvents btnRemoveRow  As RoundButton
@@ -165,7 +165,7 @@ Public Class Form1
             .BackColor   = S_PAGE,
             .Font        = F_BODY
         }
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 232))
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 334))
         body.RowStyles.Add(New RowStyle(SizeType.Absolute,  58))
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 104))
         body.RowStyles.Add(New RowStyle(SizeType.Percent,  100))
@@ -326,7 +326,7 @@ Public Class Form1
         inputGrid = New DataGridView With {
             .Left              = PAD_L,
             .Top               = PAD_T + 86,
-            .Height            = 104,
+            .Height            = 206,
             .AllowUserToAddRows = False,
             .BackgroundColor   = S_CARD,
             .SelectionMode     = DataGridViewSelectionMode.FullRowSelect,
@@ -361,18 +361,20 @@ Public Class Form1
         }
         body.Controls.Add(pnlCompute, 0, 1)
 
-        btnCompute = New RoundButton With {
-            .Text       = "▶   COMPUTE TRAVERSE",
-            .Dock       = DockStyle.Fill,
-            .Font       = F_BTN_LG,
-            .FillColor  = A_BASE,
-            .HoverColor = A_HOVER,
-            .PressColor = A_PRESS,
-            .TextColor  = T_ON_ACC,
-            .Radius     = 12,
-            .Cursor     = Cursors.Hand,
-            .TabStop    = False
+        btnCompute = New Button With {
+            .Text      = "▶   COMPUTE TRAVERSE",
+            .Dock      = DockStyle.Fill,
+            .Font      = F_BTN_LG,
+            .BackColor = A_BASE,
+            .ForeColor = T_ON_ACC,
+            .FlatStyle = FlatStyle.Flat,
+            .Cursor    = Cursors.Hand,
+            .TabStop   = False
         }
+        btnCompute.FlatAppearance.BorderSize         = 0
+        btnCompute.FlatAppearance.BorderColor        = A_BASE
+        btnCompute.FlatAppearance.MouseOverBackColor = A_HOVER
+        btnCompute.FlatAppearance.MouseDownBackColor = A_PRESS
         pnlCompute.Controls.Add(btnCompute)
     End Sub
 
@@ -605,8 +607,8 @@ Public Class Form1
         gv.GridColor                                        = B_DEFAULT
         gv.ColumnHeadersHeight                              = 36
         gv.RowTemplate.Height                               = 34
-        gv.ColumnHeadersDefaultCellStyle.BackColor          = S_CARD_ALT
-        gv.ColumnHeadersDefaultCellStyle.ForeColor          = T_BODY
+        gv.ColumnHeadersDefaultCellStyle.BackColor          = Color.FromArgb(99, 102, 241)   ' indigo-500 (lighter)
+        gv.ColumnHeadersDefaultCellStyle.ForeColor          = Color.White
         gv.ColumnHeadersDefaultCellStyle.Font               = F_GRID_H
         gv.ColumnHeadersDefaultCellStyle.Alignment          = DataGridViewContentAlignment.MiddleLeft
         gv.ColumnHeadersDefaultCellStyle.Padding            = New Padding(12, 0, 0, 0)
