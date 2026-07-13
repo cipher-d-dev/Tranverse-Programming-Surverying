@@ -106,6 +106,7 @@ Public Class Form1
         Me.MinimumSize   = New Size(1100, 720)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor     = S_PAGE
+        ' Set font on the form AND immediately propagate to all children
         Me.Font          = F_LABEL
 
         ' ── Outer TableLayout: header row (fixed) + body row (fills) ─────────
@@ -115,7 +116,8 @@ Public Class Form1
             .ColumnCount = 1,
             .Padding     = New Padding(0),
             .Margin      = New Padding(0),
-            .BackColor   = S_PAGE
+            .BackColor   = S_PAGE,
+            .Font        = F_LABEL
         }
         outer.RowStyles.Add(New RowStyle(SizeType.Absolute, 74))   ' header
         outer.RowStyles.Add(New RowStyle(SizeType.Percent, 100))   ' body
@@ -126,7 +128,8 @@ Public Class Form1
         Dim header As New Panel With {
             .Dock      = DockStyle.Fill,
             .BackColor = S_HEADER,
-            .Padding   = New Padding(24, 0, 0, 0)
+            .Padding   = New Padding(24, 0, 0, 0),
+            .Font      = F_LABEL
         }
         AddHandler header.Paint, AddressOf OnHeaderPaint
         outer.Controls.Add(header, 0, 0)
@@ -154,7 +157,8 @@ Public Class Form1
             .RowCount    = 4,
             .ColumnCount = 1,
             .Padding     = New Padding(16, 12, 16, 12),
-            .BackColor   = S_PAGE
+            .BackColor   = S_PAGE,
+            .Font        = F_LABEL
         }
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 210))   ' input section
         body.RowStyles.Add(New RowStyle(SizeType.Absolute,  48))   ' compute button
@@ -167,6 +171,7 @@ Public Class Form1
         Dim cardInput As Panel = MakeCard()
         cardInput.Dock    = DockStyle.Fill
         cardInput.Padding = New Padding(16, 10, 16, 10)
+        cardInput.Font    = F_LABEL
         body.Controls.Add(cardInput, 0, 0)
 
         ' Section label
@@ -180,7 +185,8 @@ Public Class Form1
             .Top           = 22,
             .Height        = 30,
             .WrapContents  = False,
-            .BackColor     = Color.Transparent
+            .BackColor     = Color.Transparent,
+            .Font          = F_LABEL
         }
         flowCtrl.Controls.Add(MakeFieldLabel("Start Bearing (D M S)"))
         txtStartBearing = MakeInput("60 0 0", 88)
@@ -248,7 +254,8 @@ Public Class Form1
         Dim pnlCompute As New Panel With {
             .Dock      = DockStyle.Fill,
             .BackColor = S_PAGE,
-            .Padding   = New Padding(0, 6, 0, 6)
+            .Padding   = New Padding(0, 6, 0, 6),
+            .Font      = F_LABEL
         }
         body.Controls.Add(pnlCompute, 0, 1)
 
@@ -261,7 +268,7 @@ Public Class Form1
             .FlatStyle = FlatStyle.Flat,
             .Cursor    = Cursors.Hand
         }
-        btnCompute.FlatAppearance.BorderSize      = 0
+        btnCompute.FlatAppearance.BorderSize         = 0
         btnCompute.FlatAppearance.MouseOverBackColor = A_DARK
         pnlCompute.Controls.Add(btnCompute)
 
@@ -269,14 +276,16 @@ Public Class Form1
         Dim cardStats As Panel = MakeCard()
         cardStats.Dock    = DockStyle.Fill
         cardStats.Padding = New Padding(0)
+        cardStats.Font    = F_LABEL
         body.Controls.Add(cardStats, 0, 2)
 
         Dim statFlow As New TableLayoutPanel With {
-            .Dock        = DockStyle.Fill,
-            .ColumnCount = 5,
-            .RowCount    = 1,
-            .BackColor   = Color.Transparent,
-            .CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
+            .Dock            = DockStyle.Fill,
+            .ColumnCount     = 5,
+            .RowCount        = 1,
+            .BackColor       = Color.Transparent,
+            .CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
+            .Font            = F_LABEL
         }
         For i As Integer = 0 To 4
             statFlow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 20))
@@ -295,6 +304,7 @@ Public Class Form1
         Dim cardResults As Panel = MakeCard()
         cardResults.Dock    = DockStyle.Fill
         cardResults.Padding = New Padding(0)
+        cardResults.Font    = F_LABEL
         body.Controls.Add(cardResults, 0, 3)
 
         Dim lblResHdr As New Label With {
@@ -355,7 +365,8 @@ Public Class Form1
     Private Function MakeCard() As Panel
         Return New Panel With {
             .BackColor = S_CARD,
-            .Margin    = New Padding(0, 0, 0, 8)
+            .Margin    = New Padding(0, 0, 0, 8),
+            .Font      = F_LABEL
         }
     End Function
 
@@ -425,7 +436,8 @@ Public Class Form1
         Dim cell As New Panel With {
             .Dock      = DockStyle.Fill,
             .BackColor = Color.Transparent,
-            .Padding   = New Padding(14, 10, 8, 8)
+            .Padding   = New Padding(14, 10, 8, 8),
+            .Font      = F_STAT_K
         }
         cell.Controls.Add(New Label With {
             .Text      = key,

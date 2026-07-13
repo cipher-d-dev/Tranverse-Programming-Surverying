@@ -1,10 +1,3 @@
-' ==================================================================================
-'  Entry point - needed when building/running with the .NET SDK directly
-'  (dotnet build / dotnet run), instead of through the full Visual Studio IDE.
-'  Visual Studio normally generates this file for you automatically; since we
-'  are building with just the lightweight SDK, we add it ourselves.
-' ==================================================================================
-
 Imports System
 Imports System.Windows.Forms
 
@@ -14,6 +7,13 @@ Module Program
         Application.SetHighDpiMode(HighDpiMode.SystemAware)
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
+
+        ' Force Segoe UI 9pt as the application-wide default font so every
+        ' control — including those inside nested TableLayoutPanels and
+        ' FlowLayoutPanels — inherits it instead of the system default
+        ' (usually Microsoft Sans Serif 8.25pt on older Windows builds).
+        Application.SetDefaultFont(New System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Regular))
+
         Application.Run(New Form1())
     End Sub
 End Module
