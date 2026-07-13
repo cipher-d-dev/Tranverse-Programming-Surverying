@@ -7,7 +7,7 @@
 '  -----------
 '  This programme accepts survey field data (station names, included angles
 '  and horizontal distances) for a closed traverse of any size (minimum of
-'  five stations/legs as required) and performs the following computations:
+'  three stations/legs) and performs the following computations:
 '
 '   1. Angular misclosure check  ( Sum of interior angles vs (n-2)*180 )
 '   2. Forward bearings for every traverse leg (back-bearing method)
@@ -82,11 +82,13 @@ Module TraverseProgramme
         ' initial control/reference station (given or previously observed)
         Dim startBearing As Double = DMSToDecimal(60, 0, 0)
 
+        ' Coordinates of the initial control station A
+
         ' Coordinates of the initial control station A (Northing, Easting)
         Dim startN As Double = 1000.0
         Dim startE As Double = 1000.0
 
-        Dim n As Integer = stationNames.Length   ' number of stations / legs (>= 5)
+        Dim n As Integer = stationNames.Length   ' number of stations / legs (>= 3)
 
         ' =========================================================================
         '  2. ANGULAR MISCLOSURE CHECK

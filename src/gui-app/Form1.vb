@@ -212,7 +212,7 @@ Public Class Form1
 
         ' Hint text
         Dim hint As New Label With {
-            .Text      = "Enter station name, included angle (degrees minutes seconds, space-separated) and distance to next station in metres.  Minimum 5 rows.",
+            .Text      = "Enter station name, included angle (degrees minutes seconds, space-separated) and distance to next station in metres.  Minimum 3 rows.",
             .Font      = New Font("Segoe UI", 8, FontStyle.Regular),
             .ForeColor = T_MUTED,
             .AutoSize  = False,
@@ -522,8 +522,8 @@ Public Class Form1
     Private Sub ComputeTraverse_Click() Handles btnCompute.Click
         Try
             Dim n As Integer = inputGrid.Rows.Count
-            If n < 5 Then
-                MessageBox.Show("Please enter at least 5 stations.",
+            If n < 3 Then
+                MessageBox.Show("Please enter at least 3 stations (minimum for a closed traverse).",
                     "Insufficient Data", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 Return
             End If
