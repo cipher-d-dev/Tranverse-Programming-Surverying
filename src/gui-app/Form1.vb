@@ -182,8 +182,8 @@ Public Class Form1
             .FlowDirection = FlowDirection.LeftToRight,
             .AutoSize      = True,
             .Left          = 0,
-            .Top           = 22,
-            .Height        = 30,
+            .Top           = 26,
+            .Height        = 32,
             .WrapContents  = False,
             .BackColor     = Color.Transparent,
             .Font          = F_LABEL
@@ -266,10 +266,15 @@ Public Class Form1
             .BackColor = A_MID,
             .ForeColor = T_ONACCNT,
             .FlatStyle = FlatStyle.Flat,
-            .Cursor    = Cursors.Hand
+            .Cursor    = Cursors.Hand,
+            .TabStop   = False
         }
         btnCompute.FlatAppearance.BorderSize         = 0
+        btnCompute.FlatAppearance.BorderColor        = A_MID
         btnCompute.FlatAppearance.MouseOverBackColor = A_DARK
+        btnCompute.FlatAppearance.MouseDownBackColor = DarkenColor(A_DARK, 15)
+        ' Owner-draw for rounded corners
+        AddHandler btnCompute.Paint, AddressOf PaintRoundButton
         pnlCompute.Controls.Add(btnCompute)
 
         ' ── ROW 2 : Stats bar (5 tiles) ───────────────────────────────────────
@@ -363,11 +368,14 @@ Public Class Form1
     '  FACTORY / STYLE HELPERS
     ' =========================================================================
     Private Function MakeCard() As Panel
-        Return New Panel With {
+        Dim p As New Panel With {
             .BackColor = S_CARD,
             .Margin    = New Padding(0, 0, 0, 8),
-            .Font      = F_LABEL
+            .Font      = F_LABEL,
+            .Padding   = New Padding(0)
         }
+        AddHandler p.Paint, AddressOf PaintCardShadow
+        Return p
     End Function
 
     Private Function MakeSectionLabel(txt As String, x As Integer, y As Integer) As Label
@@ -388,7 +396,7 @@ Public Class Form1
             .ForeColor   = T_PRIMARY,
             .AutoSize    = False,
             .Width       = TextRenderer.MeasureText(txt, F_LABEL).Width + 6,
-            .Height      = 28,
+            .Height      = 32,
             .TextAlign   = ContentAlignment.MiddleRight,
             .Margin      = New Padding(0, 0, 4, 0)
         }
@@ -398,19 +406,19 @@ Public Class Form1
         Return New TextBox With {
             .Text        = defaultVal,
             .Width       = w,
-            .Height      = 28,
+            .Height      = 32,
             .Font        = F_INPUT,
             .BackColor   = S_CARD,
             .ForeColor   = T_PRIMARY,
             .BorderStyle = BorderStyle.FixedSingle,
-            .Margin      = New Padding(0, 0, 0, 0)
+            .Margin      = New Padding(0, 4, 0, 0)
         }
     End Function
 
     Private Function MakeSpacer(w As Integer) As Panel
         Return New Panel With {
             .Width     = w,
-            .Height    = 1,
+            .Height    = 32,
             .BackColor = Color.Transparent
         }
     End Function
@@ -425,10 +433,22 @@ Public Class Form1
             .ForeColor = T_ONACCNT,
             .FlatStyle = FlatStyle.Flat,
             .Cursor    = Cursors.Hand,
-            .Margin    = New Padding(0)
+            .Margin    = New Padding(0),
+            .TabStop   = False
         }
-        b.FlatAppearance.BorderSize = 0
+        b.FlatAppearance.BorderSize  = 0
+        b.FlatAppearance.BorderColor = bg   ' match border to bg so it vanishes completely
+        b.FlatAppearance.MouseOverBackColor  = DarkenColor(bg, 20)
+        b.FlatAppearance.MouseDownBackColor  = DarkenColor(bg, 35)
         Return b
+    End Function
+
+    ''' <summary>Darkens a colour by reducing each channel by <paramref name="amount"/>.</summary>
+    Private Function DarkenColor(c As Color, amount As Integer) As Color
+        Return Color.FromArgb(
+            Math.Max(0, CInt(c.R) - amount),
+            Math.Max(0, CInt(c.G) - amount),
+            Math.Max(0, CInt(c.B) - amount))
     End Function
 
     ''' <summary>Adds a two-line stat tile (key label + bold value label) to a column in the stats TableLayoutPanel.</summary>
@@ -480,6 +500,69 @@ Public Class Form1
         Dim p As Panel = DirectCast(sender, Panel)
         Using br As New SolidBrush(A_MID)
             e.Graphics.FillRectangle(br, 0, p.Height - 3, p.Width, 3)
+        End Using
+    End Sub
+
+    ' ── Card: white fill + subtle bottom/right shadow ──
+    Private Sub PaintCardShadow(sender As Object, e As PaintEventArgs)
+        Dim p As Panel = DirectCast(sender, Panel)
+        Dim g As Graphics = e.Graphics
+        g.SmoothingMode = SmoothingMode.AntiAlias
+
+        ' Shadow layers (paint before the white fill so they sit behind)
+        Dim shadowColors() As Color = {
+            Color.FromArgb(18, 0, 0, 0),
+            Color.FromArgb(10, 0, 0, 0),
+            Color.FromArgb( 5, 0, 0, 0)
+        }
+        For offset As Integer = 1 To 3
+            Using shadowBr As New SolidBrush(shadowColors(offset - 1))
+                g.FillRectangle(shadowBr,
+                    New Rectangle(offset, offset, p.Width - offset, p.Height - offset))
+            End Using
+        Next
+
+        ' White card surface
+        Using cardBr As New SolidBrush(S_CARD)
+            g.FillRectangle(cardBr, New Rectangle(0, 0, p.Width - 3, p.Height - 3))
+        End Using
+
+        ' Hairline border
+        Using borderPen As New Pen(B_SUBTLE, 1)
+            g.DrawRectangle(borderPen, 0, 0, p.Width - 4, p.Height - 4)
+        End Using
+    End Sub
+
+    ' ── Compute button: rounded rectangle with centred text ──
+    Private Sub PaintRoundButton(sender As Object, e As PaintEventArgs)
+        Dim b As Button = DirectCast(sender, Button)
+        Dim g As Graphics = e.Graphics
+        g.SmoothingMode = SmoothingMode.AntiAlias
+
+        Dim bg As Color = If(b.ClientRectangle.Contains(b.PointToClient(Control.MousePosition)),
+                             A_DARK, A_MID)
+        Dim radius As Integer = 6
+        Dim r As New Rectangle(0, 0, b.Width - 1, b.Height - 1)
+
+        ' Rounded fill
+        Using path As New Drawing2D.GraphicsPath()
+            path.AddArc(r.X, r.Y, radius * 2, radius * 2, 180, 90)
+            path.AddArc(r.Right - radius * 2, r.Y, radius * 2, radius * 2, 270, 90)
+            path.AddArc(r.Right - radius * 2, r.Bottom - radius * 2, radius * 2, radius * 2, 0, 90)
+            path.AddArc(r.X, r.Bottom - radius * 2, radius * 2, radius * 2, 90, 90)
+            path.CloseFigure()
+            Using br As New SolidBrush(bg)
+                g.FillPath(br, path)
+            End Using
+        End Using
+
+        ' Centred text
+        Dim sf As New StringFormat With {
+            .Alignment     = StringAlignment.Center,
+            .LineAlignment = StringAlignment.Center
+        }
+        Using textBr As New SolidBrush(T_ONACCNT)
+            g.DrawString(b.Text, b.Font, textBr, RectangleF.op_Implicit(r), sf)
         End Using
     End Sub
 
