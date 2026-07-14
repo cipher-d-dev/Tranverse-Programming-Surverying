@@ -134,16 +134,24 @@ Public Class Form1
     End Sub
 
     '==========================================================================
+    '  MINIMUM CONTENT HEIGHT
+    '  input(334) + compute(58) + stats(104) + results(340) + padding(30)
+    '  = 866 px.  Below this the scroll panel kicks in.
+    '==========================================================================
+    Private Const BODY_MIN_H As Integer = 866
+
+    '==========================================================================
     '  BUILD UI
     '==========================================================================
     Private Sub BuildUI()
         Me.Text          = "SVY 323  ·  Closed Traverse Computation"
         Me.ClientSize    = New Size(1280, 960)
-        Me.MinimumSize   = New Size(1120, 740)
+        Me.MinimumSize   = New Size(820, 500)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor     = S_PAGE
         Me.Font          = F_BODY
 
+        ' ── outer shell: fixed header row + fill row for the scroll viewport ──
         Dim outer As New TableLayoutPanel With {
             .Dock        = DockStyle.Fill,
             .RowCount    = 2,
@@ -158,8 +166,18 @@ Public Class Form1
 
         BuildHeader(outer)
 
+        ' ── scroll viewport: AutoScroll = True, header stays above it ────────
+        Dim scrollPane As New Panel With {
+            .Dock       = DockStyle.Fill,
+            .AutoScroll = True,
+            .BackColor  = S_PAGE
+        }
+        outer.Controls.Add(scrollPane, 0, 1)
+
+        ' ── body TLP sits inside the scroll pane ─────────────────────────────
+        ' Rows 0-2 are fixed pixel heights; row 3 (results) gets at least 340px
+        ' so it is always usable, growing when there is more vertical space.
         Dim body As New TableLayoutPanel With {
-            .Dock        = DockStyle.Fill,
             .RowCount    = 4,
             .ColumnCount = 1,
             .Padding     = New Padding(20, 14, 20, 16),
@@ -169,9 +187,21 @@ Public Class Form1
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 334))
         body.RowStyles.Add(New RowStyle(SizeType.Absolute,  58))
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 104))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent,  100))
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 340))   ' min results height
         body.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-        outer.Controls.Add(body, 0, 1)
+
+        ' Size the body to fill the scroll pane on large screens, but never
+        ' collapse below BODY_MIN_H on small ones.
+        body.Width  = scrollPane.ClientSize.Width
+        body.Height = Math.Max(BODY_MIN_H, scrollPane.ClientSize.Height)
+        scrollPane.Controls.Add(body)
+
+        ' Keep body width and height in sync when the window is resized.
+        AddHandler scrollPane.Resize,
+            Sub(s As Object, ev As EventArgs)
+                body.Width  = scrollPane.ClientSize.Width
+                body.Height = Math.Max(BODY_MIN_H, scrollPane.ClientSize.Height)
+            End Sub
 
         BuildInputCard(body)
         BuildComputeBar(body)
