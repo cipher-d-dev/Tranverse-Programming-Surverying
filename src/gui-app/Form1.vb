@@ -137,7 +137,7 @@ Public Class Form1
     '==========================================================================
     Private Sub BuildUI()
         Me.Text          = "SVY 323  ·  Closed Traverse Computation"
-        Me.ClientSize    = New Size(1280, 840)
+        Me.ClientSize    = New Size(1920, 1080)
         Me.MinimumSize   = New Size(1120, 740)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor     = S_PAGE
