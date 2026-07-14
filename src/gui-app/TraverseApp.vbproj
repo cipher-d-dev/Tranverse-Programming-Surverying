@@ -8,4 +8,21 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <!-- Copy Inter font files into a fonts/ sub-folder next to the exe -->
+    <None Include="..\..\resources\fonts\Inter-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>fonts\Inter-Regular.ttf</Link>
+    </None>
+    <None Include="..\..\resources\fonts\Inter-SemiBold.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>fonts\Inter-SemiBold.ttf</Link>
+    </None>
+    <None Include="..\..\resources\fonts\Inter-Bold.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>fonts\Inter-Bold.ttf</Link>
+    </None>
+  </ItemGroup>
+
 </Project>

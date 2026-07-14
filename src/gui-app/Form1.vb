@@ -38,22 +38,23 @@ Public Class Form1
     Private Shared ReadOnly C_DANGER_TNT As Color = Color.FromArgb(254, 242, 242)
 
     '==========================================================================
-    '  TYPOGRAPHY  (system fonts — no PrivateFontCollection needed)
+    '  TYPOGRAPHY
+    '  AppFonts.InterName resolves to "Inter" when the TTF files were loaded
+    '  successfully, or falls back to "Segoe UI Variable" when they are absent.
+    '  Font tokens are instance (not Shared) so they are created after
+    '  AppFonts.Load() has already run in Program.vb.
     '==========================================================================
-    Private Const FACE      As String = "Segoe UI Variable"
-    Private Const FACE_MONO As String = "Cascadia Mono"
-
-    Private Shared ReadOnly F_DISPLAY As New Font(FACE, 17,   FontStyle.Bold)
-    Private Shared ReadOnly F_BODY    As New Font(FACE,  9.5F, FontStyle.Regular)
-    Private Shared ReadOnly F_BODY_B  As New Font(FACE,  9.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_CAPTION As New Font(FACE,  7.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_SUBTLE  As New Font(FACE,  9,    FontStyle.Regular)
-    Private Shared ReadOnly F_BTN     As New Font(FACE,  9.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_BTN_LG  As New Font(FACE, 10.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_STAT_K  As New Font(FACE,  7.5F, FontStyle.Bold)
-    Private Shared ReadOnly F_STAT_V  As New Font(FACE, 11,    FontStyle.Bold)
-    Private Shared ReadOnly F_GRID_H  As New Font(FACE,  8,    FontStyle.Bold)
-    Private Shared ReadOnly F_GRID_C  As New Font(FACE_MONO, 9, FontStyle.Regular)
+    Private ReadOnly F_DISPLAY As New Font(AppFonts.InterName, 17,   FontStyle.Bold)
+    Private ReadOnly F_BODY    As New Font(AppFonts.InterName,  9.5F, FontStyle.Regular)
+    Private ReadOnly F_BODY_B  As New Font(AppFonts.InterName,  9.5F, FontStyle.Bold)
+    Private ReadOnly F_CAPTION As New Font(AppFonts.InterName,  7.5F, FontStyle.Bold)
+    Private ReadOnly F_SUBTLE  As New Font(AppFonts.InterName,  9,    FontStyle.Regular)
+    Private ReadOnly F_BTN     As New Font(AppFonts.InterName,  9.5F, FontStyle.Bold)
+    Private ReadOnly F_BTN_LG  As New Font(AppFonts.InterName, 10.5F, FontStyle.Bold)
+    Private ReadOnly F_STAT_K  As New Font(AppFonts.InterName,  7.5F, FontStyle.Bold)
+    Private ReadOnly F_STAT_V  As New Font(AppFonts.InterName, 11,    FontStyle.Bold)
+    Private ReadOnly F_GRID_H  As New Font(AppFonts.InterName,  8,    FontStyle.Bold)
+    Private ReadOnly F_GRID_C  As New Font(AppFonts.MonoName,   9,    FontStyle.Regular)
 
     '==========================================================================
     '  CONTROL FIELDS
